@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>休生工作台</title>
+<meta name="description" content="个人综合工作台：知识库、运营、选品、理财台账、指数跟踪、健康打卡与待办。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23000000'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%23ffd74a'/%3E%3Ccircle cx='50' cy='14' r='5' fill='%23fff3cc'/%3E%3C/svg%3E">
+<style>
+/* ===== tokens ===== */
+:root{
+  --bg:#000000;
+  --panel:#0d0d0f;
+  --panel-2:#131316;
+  --line:#26262b;
+  --line-soft:#1b1b20;
+  --yellow:#ffd74a;
+  --yellow-dim:#a78d33;
+  --red:#ff0000;
+  --flash:#E91E63;
+  --text:#eeeeee;
+  --muted:#9b9ba3;
+  --pink-bg:#fffaea;
+  --pink-hover:#fff3cc;
+  --pink-active:#ffe89a;
+  --pink-line:#f2e6c2;
+  --shadow:0 10px 30px rgba(0,0,0,.55);
+  --radius:14px;
+  --font:"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:var(--font); font-size:15px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+h1,h2,h3,h4,p{margin:0}
+a{color:var(--yellow);text-decoration:none}
+a:hover{text-decoration:underline}
+::selection{background:var(--yellow);color:#000}
+
+/* ===== header ===== */
+.header{
+  position:sticky; top:0; z-index:60;
+  background:var(--bg);
+  border-bottom:1px solid var(--line-soft);
+}
+.top-bar{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:11px 16px;
+}
+.brand-area{display:flex; align-items:center; gap:10px; min-width:0}
+.hamburger{
+  display:none;
+  width:40px;height:40px; border-radius:10px;
+  background:transparent; border:1px solid var(--line);
+  color:var(--yellow); font-size:18px; line-height:1; cursor:pointer;
+  align-items:center; justify-content:center;
+}
+.hamburger:active{background:#1a1a1d}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.logo-dot{
+  width:9px;height:9px;border-radius:50%;background:var(--yellow);flex:none;
+  box-shadow:0 0 0 4px rgba(255,215,74,.18);
+}
+.logo-text{
+  color:var(--yellow); font-weight:800; font-size:17px;
+  letter-spacing:.12em; white-space:nowrap;
+}
+.top-right{display:flex;align-items:center;gap:12px;flex:none}
+.sync-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  height:32px;padding:0 13px;border-radius:999px;
+  background:transparent;border:1px solid rgba(255,215,74,.45);
+  color:var(--yellow); font-size:12.5px; font-weight:600; cursor:pointer;
+  white-space:nowrap;
+}
+.sync-btn:hover{background:rgba(255,215,74,.1)}
+.sync-btn .dot{width:6px;height:6px;border-radius:50%;background:#3d3d44;display:inline-block}
+.sync-btn.on .dot{background:var(--yellow);box-shadow:0 0 0 3px rgba(255,215,74,.18)}
+.mcp-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);letter-spacing:.06em}
+.switch{
+  position:relative; width:44px; height:23px; border-radius:999px;
+  background:#2a2a30; border:none; cursor:pointer; padding:0;
+  transition:background .18s ease;
+}
+.switch::after{
+  content:""; position:absolute; top:3px; left:3px; width:17px; height:17px;
+  border-radius:50%; background:#8a8a92; transition:left .18s ease,background .18s ease;
+}
+.switch.on{background:var(--red)}
+.switch.on::after{left:24px;background:#ffffff}
+.switch:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+
+.search-top-row{display:flex;gap:8px;padding:0 16px 11px}
+.search-input{
+  flex:1;min-width:0;height:40px;border-radius:10px;
+  background:#111114;border:1px solid var(--line);color:var(--text);
+  padding:0 14px;font-size:16px;
+}
+.search-input::placeholder{color:#6f6f78}
+.search-input:focus{outline:none;border-color:var(--yellow);background:#151519}
+.search-btn{
+  width:44px;height:40px;flex:none;border-radius:10px;
+  background:var(--yellow);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.search-btn:hover{background:#ffe377}
+.search-btn svg{width:18px;height:18px;fill:none;stroke:#000;stroke-width:2.2}
+
+/* ===== layout / sidebar ===== */
+.layout{display:flex;align-items:stretch}
+.sidebar{
+  width:252px;flex:none;
+  background:#ffffff;color:#141416;
+  padding:12px 10px 48px;
+  min-height:calc(100vh - 110px);
+}
+#navRoot{display:flex;flex-direction:column;gap:2px}
+.group{margin-bottom:2px}
+.group-title{
+  display:flex;align-items:center;gap:8px;
+  width:100%;text-align:left;
+  background:transparent;border:none;cursor:pointer;
+  padding:9px 8px;border-radius:8px;
+  font-size:13.5px;font-weight:700;color:#141416;letter-spacing:.01em;
+}
+.group-title:hover{background:#fffaea}
+.group-arrow{
+  font-size:11px;color:#8a7231;width:12px;flex:none;
+  transition:transform .16s ease;
+}
+.group-title .g-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-body{display:flex;flex-direction:column;gap:4px;padding:2px 0 8px 10px}
+.group-body.collapsed{display:none}
+.sub-item{
+  display:block;width:100%;text-align:left;cursor:pointer;
+  border:1px solid var(--pink-line);background:var(--pink-bg);
+  color:#2a2a30;border-radius:8px;padding:7px 9px;
+  font-size:12.8px;line-height:1.35;
+  transition:background .14s ease,border-color .14s ease;
+}
+.sub-item:hover{background:var(--pink-hover);border-color:#ecdbac}
+.sub-item.active{background:var(--pink-active);border-color:#e2c96e;font-weight:700;color:#141416}
+.sub-item .ai-mark{color:#8a7231;font-size:10.5px;margin-left:4px;letter-spacing:.04em}
+
+/* ===== main ===== */
+.main{flex:1;min-width:0;padding:24px 18px 72px;max-width:1240px}
+.banner{
+  border:1px solid #3a2f12;background:#191503;color:#e2c874;
+  border-radius:10px;padding:10px 13px;font-size:12.8px;margin-bottom:18px;
+}
+.banner.warn{border-color:#3a1717;background:#1a0808;color:#f09a9a}
+
+.page-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  flex-wrap:wrap;margin-bottom:16px;
+}
+.page-head-txt{min-width:0}
+.page-title{
+  color:var(--yellow);font-size:22px;font-weight:800;letter-spacing:.02em;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+}
+.page-sub{color:var(--muted);font-size:12.8px;margin-top:6px;max-width:62ch}
+.page-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  height:34px;padding:0 15px;border-radius:999px;
+  background:var(--yellow);color:#000;font-weight:700;font-size:13px;
+  border:1px solid var(--yellow);cursor:pointer;white-space:nowrap;
+  transition:background .14s ease,transform .1s ease;
+}
+.btn:hover{background:#ffe377;border-color:#ffe377}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:transparent;border-color:rgba(255,215,74,.42);color:var(--yellow);font-weight:600}
+.btn.ghost:hover{background:rgba(255,215,74,.1);border-color:rgba(255,215,74,.7)}
+.btn.tiny{height:28px;padding:0 11px;font-size:12px}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+
+.link-btn{
+  background:none;border:none;padding:0;cursor:pointer;
+  color:var(--yellow);font-size:12.5px;font-weight:600;text-decoration:underline;
+  text-underline-offset:2px;
+}
+
+/* filter bar */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.chip{
+  height:30px;padding:0 14px;border-radius:999px;cursor:pointer;
+  background:#111114;border:1px solid var(--line);color:#c8c8cf;
+  font-size:12.8px;
+}
+.chip:hover{border-color:#3a3a42;color:#fff}
+.chip.on{background:var(--yellow);border-color:var(--yellow);color:#000;font-weight:700}
+
+/* cards */
+.cards{display:grid;grid-template-columns:1fr;gap:14px}
+.card{
+  position:relative;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:15px 16px 14px;box-shadow:var(--shadow);
+  min-width:0;
+}
+.card:hover{border-color:#34343c}
+.card.flash{animation:cardFlash 2.4s ease-out}
+@keyframes cardFlash{
+  0%{box-shadow:0 0 0 3px var(--flash),var(--shadow)}
+  20%{box-shadow:0 0 0 0 rgba(233,30,99,0),var(--shadow)}
+  40%{box-shadow:0 0 0 3px var(--flash),var(--shadow)}
+  60%{box-shadow:0 0 0 0 rgba(233,30,99,0),var(--shadow)}
+  100%{box-shadow:var(--shadow)}
+}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.card-title{
+  color:var(--yellow);font-size:16px;font-weight:700;line-height:1.4;
+  min-width:0;overflow-wrap:anywhere;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.card-actions{display:flex;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.icon-btn{
+  height:26px;padding:0 9px;border-radius:999px;cursor:pointer;
+  background:transparent;border:1px solid #33333b;color:#cfcfd6;
+  font-size:11.5px;white-space:nowrap;
+}
+.icon-btn:hover{border-color:rgba(255,215,74,.5);color:var(--yellow)}
+.icon-btn.danger:hover{border-color:#7a2c2c;color:#ff8a8a}
+
+.kv{display:grid;grid-template-columns:88px 1fr;gap:4px 10px;margin:0}
+.kv .k{color:var(--muted);font-size:12px;line-height:1.7}
+.kv .val,.kv .v{color:#e6e6ea;font-size:13.5px;line-height:1.7;overflow-wrap:anywhere;min-width:0}
+.kv.pair{grid-template-columns:1fr}
+.kv.pair > div{padding:7px 0;border-top:1px solid var(--line-soft)}
+.kv.pair .k{display:block;font-size:11.5px;letter-spacing:.02em}
+.kv.pair .v{display:block;margin-top:2px}
+
+.card-body{color:#e6e6ea;font-size:13.5px;line-height:1.75;overflow-wrap:anywhere}
+.card-body.clamped p{margin:0 0 6px}
+.meta-line{
+  display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);
+  font-size:11.8px;margin-top:10px;
+}
+.tag{
+  display:inline-flex;align-items:center;height:21px;padding:0 9px;border-radius:999px;
+  font-size:11.5px;font-weight:700;letter-spacing:.02em;white-space:nowrap;
+}
+.tag.cat{background:rgba(255,215,74,.13);color:var(--yellow);border:1px solid rgba(255,215,74,.32)}
+.tag.gold{background:rgba(255,215,74,.13);color:#ffd74a;border:1px solid rgba(255,215,74,.35)}
+.tag.blue{background:rgba(25,118,210,.16);color:#7bb4ee;border:1px solid rgba(25,118,210,.4)}
+.tag.green{background:rgba(56,142,60,.16);color:#7fc98a;border:1px solid rgba(56,142,60,.4)}
+.tag.purple{background:rgba(123,31,162,.18);color:#c79bde;border:1px solid rgba(123,31,162,.45)}
+.tag.pending{background:rgba(255,196,0,.13);color:#e5c25c;border:1px solid rgba(255,196,0,.35)}
+.tag.hold{background:rgba(255,0,0,.12);color:#ff8b8b;border:1px solid rgba(255,0,0,.32)}
+.tag.done{background:rgba(76,175,80,.14);color:#86cf90;border:1px solid rgba(76,175,80,.35)}
+.tag.muted{background:#1b1b20;color:#9b9ba3;border:1px solid #2b2b32}
+
+.up{color:#ff6b6b}
+.down{color:#4cc28b}
+.flat{color:#9b9ba3}
+
+.card-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft);
+  flex-wrap:wrap;
+}
+.foot-time{color:#7d7d86;font-size:11.5px}
+.foot-btns{display:flex;gap:6px;flex-wrap:wrap}
+
+/* empty state */
+.empty{
+  border:1px dashed #33333b;border-radius:var(--radius);
+  padding:34px 20px;text-align:center;color:#8a8a93;font-size:13.2px;
+  background:#080809;
+}
+.empty b{color:var(--yellow);font-weight:700;display:block;margin-bottom:6px;font-size:14px}
+.empty .btn{margin-top:14px}
+
+/* checkin table */
+.table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+table.checkin{width:100%;border-collapse:collapse;table-layout:fixed}
+table.checkin th,table.checkin td{
+  padding:11px 10px;text-align:left;font-size:13px;border-bottom:1px solid var(--line-soft);
+  overflow-wrap:anywhere;
+}
+table.checkin th{background:#16161a;color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em}
+table.checkin tr:last-child td{border-bottom:none}
+table.checkin td.item{font-weight:700;color:#e8e8ec}
+table.checkin input[type="text"],
+table.checkin input[type="number"]{
+  width:100%;height:32px;border-radius:8px;background:#111114;border:1px solid var(--line);
+  color:var(--text);padding:0 10px;font-size:16px;
+}
+table.checkin input:focus{outline:none;border-color:var(--yellow)}
+.check-cell{text-align:center}
+input[type="checkbox"]{
+  appearance:none;-webkit-appearance:none;
+  width:19px;height:19px;border-radius:5px;border:1px solid #3d3d46;
+  background:#111114;cursor:pointer;vertical-align:middle;position:relative;
+}
+input[type="checkbox"]:checked{background:var(--yellow);border-color:var(--yellow)}
+input[type="checkbox"]:checked::after{
+  content:"";position:absolute;left:5px;top:2px;width:6px;height:11px;
+  border-right:2px solid #000;border-bottom:2px solid #000;transform:rotate(42deg);
+}
+.cell-tap{display:flex;align-items:center;justify-content:center;min-height:44px;cursor:pointer}
+
+/* summary */
+.sum-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
+.sum-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 15px}
+.sum-card.span2{grid-column:1/-1}
+.sum-card h4{color:var(--yellow);font-size:14px;font-weight:700;margin-bottom:6px}
+.sum-num{font-size:13.5px;color:#e6e6ea}
+.sum-num b{color:var(--yellow);font-size:19px;font-variant-numeric:tabular-nums;padding:0 3px}
+.sum-detail{color:#a9a9b2;font-size:12.3px;line-height:1.8;margin-top:6px;white-space:pre-line}
+
+/* forms / modal */
+.modal-overlay{
+  position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.modal{
+  width:min(720px,100%);max-height:88vh;overflow:auto;
+  background:#0c0c0e;border:1px solid #2e2e36;border-radius:16px;
+  box-shadow:0 30px 80px rgba(0,0,0,.85);padding:20px 20px 18px;
+}
+.modal.wide{width:min(880px,100%)}
+.modal.narrow{width:min(460px,100%)}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.modal-title{color:var(--yellow);font-size:17px;font-weight:800;line-height:1.4}
+.modal-close{
+  width:32px;height:32px;border-radius:8px;flex:none;cursor:pointer;
+  background:transparent;border:1px solid #33333b;color:#c9c9d1;font-size:15px;line-height:1;
+}
+.modal-close:hover{border-color:rgba(255,215,74,.5);color:var(--yellow)}
+.modal-body{color:#e4e4e9;font-size:14px;line-height:1.85;overflow-wrap:anywhere;white-space:pre-wrap}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12.2px;color:var(--muted);margin-bottom:5px;letter-spacing:.02em}
+.field input[type="text"],.field input[type="number"],.field input[type="date"],.field input[type="datetime-local"],.field input[type="password"],.field select,.field textarea{
+  width:100%;border-radius:9px;background:#111114;border:1px solid #31313a;
+  color:var(--text);padding:9px 11px;font-size:16px;line-height:1.5;
+}
+.field textarea{min-height:110px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--yellow);background:#15151a}
+.field .hint{color:#71717a;font-size:11.5px;margin-top:4px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr;gap:0 12px}
+
+/* search results */
+.res-list{display:flex;flex-direction:column;gap:9px}
+.res-item{
+  text-align:left;width:100%;cursor:pointer;
+  background:#111114;border:1px solid #2a2a32;border-radius:10px;
+  padding:10px 12px;color:var(--text);
+}
+.res-item:hover{border-color:rgba(255,215,74,.55);background:#16161b}
+.res-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}
+.res-mod{font-size:10.8px;color:#a78d33;border:1px solid #4a3f1f;background:#1d1a0d;border-radius:999px;padding:1px 7px}
+.res-title{font-weight:700;color:var(--yellow);font-size:13.8px}
+.res-snip{color:#a6a6ae;font-size:12.4px;line-height:1.65;overflow-wrap:anywhere}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);
+  background:#15151a;border:1px solid rgba(255,215,74,.45);color:var(--yellow);
+  padding:9px 16px;border-radius:999px;font-size:13px;z-index:200;
+  opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;
+  max-width:88vw;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.6);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.scrim{display:none}
+.hint-text{color:#7d7d86;font-size:12px;margin-top:10px;line-height:1.7}
+.mono{font-variant-numeric:tabular-nums}
+
+/* ===== responsive ===== */
+@media (max-width:768px){
+  .header{display:flex;flex-wrap:wrap;padding-bottom:10px}
+  .top-bar{display:contents}
+  .brand-area{order:1;padding:11px 0 6px 14px}
+  .top-right{order:2;margin-left:auto;padding:11px 14px 6px 0;gap:8px}
+  .search-top-row{order:3;width:100%;padding:0 14px 2px}
+  .hamburger{display:inline-flex}
+  .logo-text{font-size:16px;letter-spacing:.08em}
+  .sidebar{
+    position:fixed;top:0;bottom:0;left:0;z-index:100;
+    width:80vw;max-width:300px;transform:translateX(-102%);
+    transition:transform .24s ease;overflow:auto;
+    box-shadow:20px 0 50px rgba(0,0,0,.6);
+    padding-top:20px;
+  }
+  .sidebar.open{transform:none}
+  .scrim{
+    display:block;position:fixed;inset:0;z-index:90;
+    background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s ease;
+  }
+  .scrim.show{opacity:1;pointer-events:auto}
+  .main{padding:18px 14px 64px}
+  .page-title{font-size:19px}
+  .search-btn{height:42px;width:42px}
+  .kv{grid-template-columns:1fr}
+  .kv .k{font-size:11.5px;margin-top:4px}
+  .modal{padding:16px 15px}
+  .card{padding:14px 14px 12px}
+  table.checkin th,table.checkin td{padding:9px 8px;font-size:12.5px}
+}
+@media (min-width:769px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .sum-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (min-width:1080px){
+  .cards{grid-template-columns:repeat(3,1fr)}
+  .main{padding:28px 26px 80px}
+}
+@media (min-width:1440px){
+  .main{padding:30px 34px 90px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important;transition-duration:.001s!important}
+}
+</style>
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+
+<header class="header">
+  <div class="top-bar">
+    <div class="brand-area">
+      <button class="hamburger" id="hamburger" aria-label="打开导航" aria-expanded="false">☰</button>
+      <div class="brand"><span class="logo-dot"></span><span class="logo-text">休生工作台</span></div>
+    </div>
+    <div class="top-right">
+      <button class="sync-btn" id="syncBtn" title="把个人数据备份到自己的 GitHub 仓库"><span class="dot"></span>☁ 同步</button>
+      <div class="mcp-wrap">
+        <span>MCP</span>
+        <button class="switch" id="mcpSwitch" role="switch" aria-checked="false" aria-label="MCP 总开关"></button>
+      </div>
+    </div>
+  </div>
+  <div class="search-top-row">
+    <input id="globalSearch" class="search-input" type="text" placeholder="全局搜索工作台内容…" autocomplete="off" aria-label="全局搜索">
+    <button class="search-btn" id="searchBtn" aria-label="搜索">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4.5 4.5"></path></svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar"><div id="navRoot"></div></aside>
+  <main class="main" id="main">
+    <div id="banner" class="banner" hidden></div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   休生工作台 · 单文件应用
+   数据：个人数据 → localStorage（可选 ☁ 同步到自己的 GitHub 仓库 userData.json）
+        AI 策展内容 → 同目录 data.json
+   ============================================================ */
+
+/* ---------- 基础工具 ---------- */
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function nl2br(s){ return esc(s).replace(/\r?\n/g,'<br>'); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function pad(n){ return n<10?'0'+n:String(n); }
+function todayStr(d){ d=d||new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function ymStr(d){ d=d||new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1); }
+function fmtTime(ts){
+  if(!ts) return '--';
+  var d = new Date(ts);
+  if(isNaN(d.getTime())) return String(ts);
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+function fmtDateShort(ts){
+  if(!ts) return '--';
+  var d = new Date(ts);
+  if(isNaN(d.getTime())) return String(ts);
+  return (d.getMonth()+1)+'/'+d.getDate();
+}
+function num(n){
+  if(n===null||n===undefined||n===''||isNaN(Number(n))) return '--';
+  return Number(n).toLocaleString('zh-CN',{maximumFractionDigits:2});
+}
+function pct(n){
+  if(n===null||n===undefined||n===''||isNaN(Number(n))) return '--';
+  var v = Number(n);
+  return (v>0?'+':'')+v.toFixed(2)+'%';
+}
+function clampStr(s,n){ s=String(s==null?'':s); return s.length>n ? s.slice(0,n)+'…' : s; }
+function todayCN(){ var d=new Date(); return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日'; }
+
+var toastTimer=null;
+function toast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.classList.remove('show'); },2200);
+}
+
+/* 长文本展开缓存 */
+var TEXT_CACHE={};
+function valHTML(text,id){
+  text=String(text==null?'':text);
+  if(!text) return '<span style="color:#66666e">--</span>';
+  if(text.length<=100) return nl2br(text);
+  TEXT_CACHE[id]=text;
+  return nl2br(text.slice(0,100))+'… <button class="link-btn" data-act="expand" data-id="'+esc(id)+'">查看全文 ›</button>';
+}
+
+/* ---------- 导航结构（6 大类 22 子页） ---------- */
+var NAV=[
+  { id:1, icon:'🚀', name:'AI新账号运营', items:[
+    { page:'operation-ideas', label:'运营思路&选题素材库', ai:true },
+    { page:'account-observe', label:'对标账号观测记录' },
+    { page:'work-review', label:'作品复盘记录表' }
+  ]},
+  { id:2, icon:'👕', name:'AI 服装带货', items:[
+    { page:'product-lib', label:'选品库管理' },
+    { page:'idea-lib', label:'选题灵感库', ai:true },
+    { page:'script-lib', label:'短视频脚本库' },
+    { page:'prompt-lib', label:'AI 素材提示词仓库' },
+    { page:'record-review', label:'发布记录&复盘' }
+  ]},
+  { id:3, icon:'💸', name:'赚钱思路与副业机会', items:[
+    { page:'side-idea', label:'灵感脑洞库' },
+    { page:'project-eval', label:'项目评估池' },
+    { page:'project-test', label:'项目测试记录' },
+    { page:'project-archive', label:'项目归档复盘' }
+  ]},
+  { id:4, icon:'📈', name:'理财研究', items:[
+    { page:'finance-news', label:'理财每日新知', ai:true },
+    { page:'asset-account', label:'持仓台账' },
+    { page:'index-track', label:'指数跟踪表', ai:true },
+    { page:'rebalance', label:'调仓再平衡记录' }
+  ]},
+  { id:5, icon:'🧘', name:'健康养生', items:[
+    { page:'health-checkin', label:'今日打卡面板' },
+    { page:'checkin-history', label:'查看历史打卡汇总' },
+    { page:'body-note', label:'身体观察备忘录' }
+  ]},
+  { id:6, icon:'📑', name:'通用工具', items:[
+    { page:'knowledge-base', label:'知识库笔记' },
+    { page:'todo-list', label:'今日待办清单' }
+  ]}
+];
+
+var PAGE_META={};
+NAV.forEach(function(g){
+  g.items.forEach(function(it){
+    PAGE_META[it.page]={ title:it.label, groupName:g.name, groupId:g.id, ai:!!it.ai };
+  });
+});
+
+var PAGE_SUB={
+  'knowledge-base':'看到好文章或链接，交给对话里的 AI 分析，再把结论整段粘进来存成卡片。',
+  'todo-list':'按优先级排序；同一优先级里，时间靠后的排在上面。',
+  'operation-ideas':'AI 策展的账号运营思路与选题素材，每条带原文链接。',
+  'account-observe':'记录值得研究的同类账号：它的人设、爆款长什么样。',
+  'work-review':'自己作品的播放、点赞、转化，复盘结论比数字更重要。',
+  'product-lib':'选品的成本与售价先摆清楚，状态标记当前推进到哪一步。',
+  'idea-lib':'AI 策展的选题灵感，状态标记是否已经用过。',
+  'script-lib':'钩子、正文、分镜、配乐，一条脚本的可执行版本。',
+  'prompt-lib':'可复用的出图提示词，正向词与负向词分开存。',
+  'record-review':'每条内容发布后的数据与复盘，方便横向比较。',
+  'side-idea':'随手记下的想法，或从别处搬运来的机会。',
+  'project-eval':'先评估再投入：成本、预期、风险、评分、结论。',
+  'project-test':'小成本试跑的过程记录。',
+  'project-archive':'项目收尾后的归档与复盘。',
+  'finance-news':'只做资讯与台账整理，不构成任何买卖建议。',
+  'asset-account':'只记录持仓与估值；涨跌来自公开行情接口，可能滞后。',
+  'index-track':'四个长期跟踪的指数，数值来自 data.json，未取到显示 --。',
+  'rebalance':'每一次加减仓的时间、金额与理由。',
+  'health-checkin':'唯一使用表格的模块；只记录计划，身体不适请就医。',
+  'checkin-history':'纯本地汇总当月打卡，不联网、不拉 data.json。',
+  'body-note':'只做记录，不替代医生判断；持续不适请及时就医。'
+};
+
+/* ---------- 用户数据 key（☁ 同步范围） ---------- */
+var SYNC_KEYS=[
+  'wb_knowledge','wb_accounts','wb_reviews','wb_products','wb_scripts','wb_prompts',
+  'wb_publish','wb_ideas','wb_projects','wb_tests','wb_archive','wb_asset',
+  'wb_rebalance','wb_checkin','checkinRecords','wb_body','wb_todo'
+];
+function defaultFor(key){ return key==='checkinRecords' ? {} : []; }
+
+var Storage={
+  get:function(key,fallback){
+    try{
+      var raw=localStorage.getItem(key);
+      if(raw===null) return fallback===undefined?defaultFor(key):fallback;
+      var v=JSON.parse(raw);
+      if(v===null||v===undefined) return fallback===undefined?defaultFor(key):fallback;
+      return v;
+    }catch(e){
+      return fallback===undefined?defaultFor(key):fallback;
+    }
+  },
+  set:function(key,val){
+    try{
+      localStorage.setItem(key,JSON.stringify(val));
+    }catch(e){
+      toast('本地存储写入失败：'+(e&&e.message?e.message:'容量不足'));
+      return;
+    }
+    if(SYNC_KEYS.indexOf(key)!==-1) scheduleSync();
+  }
+};
+
+/* ---------- 通用模块配置（卡片 + 输入框） ---------- */
+var TYPE_LABEL={ gold:'黄金', nasdaq:'纳斯达克100', dividend:'红利低波', qdii:'标普500跟踪摩根', other:'其它基金' };
+var TYPE_TAG={ gold:'gold', nasdaq:'blue', dividend:'green', qdii:'purple', other:'muted' };
+var STATUS_LABEL={ pending:'待定', hold:'观望', done:'已上架' };
+var IDEA_STATUS={ pending:{l:'待定',c:'pending'}, hold:{l:'观望',c:'hold'}, done:{l:'已用',c:'done'} };
+
+var MODULES={
+  'account-observe':{ key:'wb_accounts', title:'对标账号观测记录', first:'account', fields:[
+    {k:'account',label:'账号名',type:'text',req:true,ph:'例：某某穿搭号'},
+    {k:'platform',label:'平台',type:'select',options:['抖音','小红书','视频号','快手','B站','微博','其他']},
+    {k:'fans',label:'粉丝数',type:'text',ph:'例：12.3w'},
+    {k:'persona',label:'人设',type:'textarea',ph:'这个人以什么身份出现、说话方式、记忆点'},
+    {k:'hit',label:'爆款特点',type:'textarea',ph:'哪条爆了，为什么爆'},
+    {k:'note',label:'备注',type:'textarea'}
+  ]},
+  'work-review':{ key:'wb_reviews', title:'作品复盘记录表', first:'work', fields:[
+    {k:'work',label:'作品标题',type:'text',req:true},
+    {k:'pubdate',label:'发布时间',type:'date'},
+    {k:'play',label:'播放',type:'number',ph:'数字'},
+    {k:'like',label:'点赞',type:'number'},
+    {k:'conv',label:'转化',type:'text',ph:'例：进店 32 单 5'},
+    {k:'review',label:'复盘结论',type:'textarea'}
+  ]},
+  'product-lib':{ key:'wb_products', title:'选品库管理', first:'name', fields:[
+    {k:'name',label:'商品名',type:'text',req:true},
+    {k:'cat',label:'类目',type:'text'},
+    {k:'cost',label:'进货价',type:'number'},
+    {k:'price',label:'售价',type:'number'},
+    {k:'selling',label:'卖点',type:'textarea'},
+    {k:'status',label:'状态',type:'select',options:[{v:'pending',l:'待定'},{v:'hold',l:'观望'},{v:'done',l:'已上架'}]}
+  ]},
+  'script-lib':{ key:'wb_scripts', title:'短视频脚本库', first:'name', fields:[
+    {k:'name',label:'脚本名',type:'text',req:true},
+    {k:'platform',label:'平台',type:'select',options:['抖音','小红书','视频号','快手','B站','其他']},
+    {k:'hook',label:'钩子',type:'textarea',ph:'前三秒说什么'},
+    {k:'body',label:'正文',type:'textarea'},
+    {k:'storyboard',label:'分镜',type:'textarea',ph:'镜头 / 画面 / 字幕'},
+    {k:'music',label:'配乐',type:'text'}
+  ]},
+  'prompt-lib':{ key:'wb_prompts', title:'AI 素材提示词仓库', first:'name', fields:[
+    {k:'name',label:'提示词名',type:'text',req:true},
+    {k:'pos',label:'正向词',type:'textarea'},
+    {k:'neg',label:'负向词',type:'textarea'},
+    {k:'scene',label:'适用场景',type:'text'},
+    {k:'tags',label:'标签',type:'text',ph:'用顿号或逗号分隔'}
+  ]},
+  'record-review':{ key:'wb_publish', title:'发布记录&复盘', first:'content', fields:[
+    {k:'content',label:'内容',type:'text',req:true,ph:'这条发的是什么'},
+    {k:'pubdate',label:'发布时间',type:'date'},
+    {k:'platform',label:'平台',type:'select',options:['抖音','小红书','视频号','快手','B站','其他']},
+    {k:'metrics',label:'数据',type:'textarea',ph:'播放 / 点赞 / 评论 / 转化'},
+    {k:'review',label:'复盘',type:'textarea'}
+  ]},
+  'side-idea':{ key:'wb_ideas', title:'灵感脑洞库', first:'idea', fields:[
+    {k:'idea',label:'想法',type:'textarea',req:true},
+    {k:'source',label:'来源',type:'select',options:[{v:'手记',l:'手记'},{v:'搬运',l:'搬运'}]},
+    {k:'time',label:'时间',type:'date'}
+  ]},
+  'project-eval':{ key:'wb_projects', title:'项目评估池', first:'name', fields:[
+    {k:'name',label:'项目名称',type:'text',req:true},
+    {k:'invest',label:'投入',type:'text',ph:'钱 / 时间 / 人力'},
+    {k:'income',label:'预期收益',type:'text'},
+    {k:'risk',label:'风险',type:'textarea'},
+    {k:'score',label:'评分',type:'number',ph:'1-10'},
+    {k:'verdict',label:'结论',type:'textarea'}
+  ]},
+  'project-test':{ key:'wb_tests', title:'项目测试记录', first:'name', fields:[
+    {k:'name',label:'项目名称',type:'text',req:true},
+    {k:'invest',label:'投入',type:'text'},
+    {k:'income',label:'预期收益',type:'text'},
+    {k:'risk',label:'风险',type:'textarea'},
+    {k:'score',label:'评分',type:'number'},
+    {k:'verdict',label:'测试结论',type:'textarea'}
+  ]},
+  'project-archive':{ key:'wb_archive', title:'项目归档复盘', first:'name', fields:[
+    {k:'name',label:'项目名称',type:'text',req:true},
+    {k:'invest',label:'投入',type:'text'},
+    {k:'income',label:'预期收益',type:'text'},
+    {k:'risk',label:'风险',type:'textarea'},
+    {k:'score',label:'评分',type:'number'},
+    {k:'verdict',label:'归档复盘',type:'textarea'}
+  ]},
+  'rebalance':{ key:'wb_rebalance', title:'调仓再平衡记录', first:'target', fields:[
+    {k:'target',label:'标的',type:'text',req:true},
+    {k:'date',label:'时间',type:'date'},
+    {k:'action',label:'动作',type:'select',options:[{v:'加',l:'加'},{v:'减',l:'减'},{v:'调',l:'调'}]},
+    {k:'amount',label:'金额',type:'number'},
+    {k:'reason',label:'理由',type:'textarea'}
+  ]},
+  'body-note':{ key:'wb_body', title:'身体观察备忘录', first:'symptom', fields:[
+    {k:'symptom',label:'症状/观察',type:'textarea',req:true},
+    {k:'date',label:'日期',type:'date'},
+    {k:'note',label:'备注',type:'textarea'}
+  ]}
+};
+
+/* ---------- 远程数据 ---------- */
+var DATA={
+  holdings:[], financeNews:[], operationIdeas:[], ideaLib:[], indexTrack:[], fundQuotes:{}
+};
+var DATA_STATE={ loaded:false, error:'', at:'' };
+var fundQuote={};
+var MCP_ON=false;
+var currentPage='knowledge-base';
+
+function latestFinanceDate(){
+  if(!Array.isArray(DATA.financeNews)||!DATA.financeNews.length) return '';
+  var dates=DATA.financeNews.map(function(x){return String(x.date||'');}).sort();
+  return dates[dates.length-1]||'';
+}
+function dataStamp(){
+  var d=latestFinanceDate();
+  if(d) return d;
+  if(DATA_STATE.at) return fmtTime(DATA_STATE.at);
+  return '';
+}
+
+/* ---------- 页面渲染引擎 ---------- */
+var view=document.getElementById('view');
+var bannerEl=document.getElementById('banner');
+
+function pageHead(title,sub,actions,extraLeft){
+  return '<div class="page-head"><div class="page-head-txt">'+
+    '<h1 class="page-title">'+esc(title)+(extraLeft||'')+'</h1>'+
+    (sub?'<p class="page-sub">'+esc(sub)+'</p>':'')+
+    '</div><div class="page-actions">'+(actions||'')+'</div></div>';
+}
+function aiFetchBtn(){
+  return '<button class="btn ghost" data-act="ai-fetch"'+(MCP_ON?'':' disabled')+'>AI刷新抓取</button>';
+}
+function emptyState(title,hint,btnHTML){
+  return '<div class="empty"><b>'+esc(title)+'</b>'+esc(hint||'')+(btnHTML||'')+'</div>';
+}
+function tagForStatus(status){
+  var map={pending:'pending',hold:'hold',done:'done'};
+  var cls=map[status]||'muted';
+  var label=STATUS_LABEL[status]||status||'--';
+  return '<span class="tag '+cls+'">'+esc(label)+'</span>';
+}
+
+/* ---------- 侧栏 ---------- */
+function renderNav(){
+  var root=document.getElementById('navRoot');
+  root.innerHTML=NAV.map(function(g){
+    return '<div class="group">'+
+      '<button class="group-title" onclick="toggleGroup('+g.id+')" aria-expanded="true">'+
+        '<span class="group-arrow" id="ga-'+g.id+'">▼</span>'+
+        '<span class="g-name">'+g.icon+' '+esc(g.name)+'</span>'+
+      '</button>'+
+      '<div class="group-body" id="gb-'+g.id+'">'+
+        g.items.map(function(it){
+          return '<button class="sub-item" data-nav="'+it.page+'">'+esc(it.label)+(it.ai?'<span class="ai-mark">AI</span>':'')+'</button>';
+        }).join('')+
+      '</div></div>';
+  }).join('');
+}
+function toggleGroup(n){
+  var body=document.getElementById('gb-'+n);
+  var arrow=document.getElementById('ga-'+n);
+  if(!body) return;
+  var collapsed=body.classList.toggle('collapsed');
+  if(arrow) arrow.textContent=collapsed?'▶':'▼';
+  var btn=arrow?arrow.parentNode:null;
+  if(btn) btn.setAttribute('aria-expanded',collapsed?'false':'true');
+}
+function updateActiveNav(){
+  document.querySelectorAll('.sub-item').forEach(function(el){
+    el.classList.toggle('active', el.getAttribute('data-nav')===currentPage);
+  });
+  if(window.innerWidth<=768){
+    document.getElementById('sidebar').classList.remove('open');
+    var sc=document.getElementById('scrim'); if(sc) sc.classList.remove('show');
+    document.getElementById('hamburger').setAttribute('aria-expanded','false');
+  }
+}
+function goPage(page,cardId){
+  if(!PAGE_META[page]) return;
+  var changed=(page!==currentPage);
+  currentPage=page;
+  render();
+  if(cardId){
+    setTimeout(function(){ focusCard(cardId); }, changed?90:40);
+  }
+}
+function focusCard(cardId){
+  var el=document.querySelector('[data-card-id="'+cardId+'"]');
+  if(!el) return;
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+  setTimeout(function(){ el.classList.remove('flash'); },2600);
+}
+
+/* ---------- 模块渲染 ---------- */
+var RENDERERS={};
+
+function cardActions(page,id,extra){
+  return '<div class="card-actions">'+(extra||'')+
+    '<button class="icon-btn" data-act="edit" data-page="'+page+'" data-id="'+esc(id)+'">✎ 编辑</button>'+
+    '<button class="icon-btn danger" data-act="del" data-page="'+page+'" data-id="'+esc(id)+'">删除</button>'+
+  '</div>';
+}
+
+function renderGeneric(page){
+  var m=MODULES[page];
+  var list=Storage.get(m.key,[]);
+  var addBtn='<button class="btn" data-act="add" data-page="'+page+'">＋ 新增</button>';
+  var head=pageHead(PAGE_META[page].title, PAGE_SUB[page]||'', addBtn);
+  if(!list.length){
+    return head+emptyState('还没有记录','点右上角「＋ 新增」写下第一条；数据只存在你自己的浏览器里。',addBtn);
+  }
+  var sorted=list.slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+  return head+'<div class="cards">'+sorted.map(function(it){ return genericCard(page,it); }).join('')+'</div>';
+}
+
+function genericCard(page,it){
+  var m=MODULES[page];
+  var title=String(it[m.first]||'未命名');
+  var tagHTML='';
+  if(page==='product-lib' && it.status) tagHTML=tagForStatus(it.status);
+  var rows='';
+  m.fields.forEach(function(f){
+    if(f.k===m.first) return;
+    if(f.k==='status' && page==='product-lib') return;
+    var raw=it[f.k];
+    var display;
+    if(f.type==='number') display=num(raw);
+    else if(f.type==='textarea') display=valHTML(raw,it.id+'-'+f.k);
+    else if(f.type==='select'){
+      var label=raw;
+      if(f.options){ f.options.forEach(function(o){ if(typeof o==='object' && String(o.v)===String(raw)) label=o.l; }); }
+      display=esc(label||'--');
+    } else if(f.type==='date'){
+      display=esc(raw||'--');
+    } else {
+      display=esc(raw||'--');
+    }
+    rows+='<div class="k">'+esc(f.label)+'</div><div class="v">'+display+'</div>';
+  });
+  return '<article class="card" data-card-id="'+esc(it.id)+'">'+
+    '<div class="card-top"><div class="card-title"><span>'+esc(title)+'</span>'+tagHTML+'</div>'+
+    cardActions(page,it.id)+'</div>'+
+    '<div class="kv">'+rows+'</div>'+
+    '<div class="meta-line">创建于 '+fmtTime(it.createdAt)+'</div>'+
+  '</article>';
+}
+
+function render(){
+  var page=currentPage;
+  var html;
+  if(RENDERERS[page]) html=RENDERERS[page]();
+  else if(MODULES[page]) html=renderGeneric(page);
+  else html=pageHead(PAGE_META[page].title, PAGE_SUB[page]||'', '');
+  view.innerHTML=html;
+  updateActiveNav();
+}
+
+/* ---------- 弹窗 ---------- */
+var modalRoot=document.getElementById('modalRoot');
+function openModal(title,bodyHTML,opts){
+  opts=opts||{};
+  modalRoot.innerHTML='<div class="modal-overlay" id="mOverlay">'+
+    '<div class="modal '+(opts.cls||'')+'" role="dialog" aria-modal="true" aria-label="'+esc(title)+'">'+
+      '<div class="modal-head"><h3 class="modal-title">'+esc(title)+'</h3>'+
+        '<button class="modal-close" data-act="close-modal" aria-label="关闭">✕</button></div>'+
+      '<div class="modal-content">'+bodyHTML+'</div>'+
+    '</div></div>';
+  var ov=document.getElementById('mOverlay');
+  ov.addEventListener('click',function(e){ if(e.target.id==='mOverlay') closeModal(); });
+}
+function closeModal(){ modalRoot.innerHTML=''; }
+
+function fieldHTML(f,value){
+  var id='f_'+f.k;
+  var v=value===undefined||value===null?'':value;
+  var label='<label for="'+id+'">'+esc(f.label)+(f.req?' <span style="color:#ff8b8b">*</span>':'')+'</label>';
+  if(f.type==='textarea'){
+    return '<div class="field">'+label+'<textarea id="'+id+'" placeholder="'+esc(f.ph||'')+'">'+esc(v)+'</textarea></div>';
+  }
+  if(f.type==='select'){
+    var opts=(f.options||[]).map(function(o){
+      var val=typeof o==='object'?o.v:o;
+      var lab=typeof o==='object'?o.l:o;
+      return '<option value="'+esc(val)+'"'+(String(v)===String(val)?' selected':'')+'>'+esc(lab)+'</option>';
+    }).join('');
+    return '<div class="field">'+label+'<select id="'+id+'">'+opts+'</select></div>';
+  }
+  if(f.type==='date'){
+    return '<div class="field">'+label+'<input id="'+id+'" type="date" value="'+esc(v)+'"></div>';
+  }
+  if(f.type==='datetime-local'){
+    return '<div class="field">'+label+'<input id="'+id+'" type="datetime-local" value="'+esc(v)+'"></div>';
+  }
+  if(f.type==='password'){
+    return '<div class="field">'+label+'<input id="'+id+'" type="password" value="'+esc(v)+'" autocomplete="off"></div>';
+  }
+  return '<div class="field">'+label+'<input id="'+id+'" type="'+(f.type==='number'?'number':'text')+'" value="'+esc(v)+'" placeholder="'+esc(f.ph||'')+'"></div>';
+}
+
+function openModuleForm(page,id){
+  var m=MODULES[page];
+  var list=Storage.get(m.key,[]);
+  var item=null;
+  if(id){ list.forEach(function(x){ if(x.id===id) item=x; }); }
+  var data=item||{};
+  var sub='';
+  if(page==='body-note') sub='<p class="hint">这里只做记录。持续不适或症状加重，请及时就医，不要靠记录自行判断。</p>';
+  if(page==='rebalance') sub='<p class="hint">只记录自己的动作与理由，系统不提供任何买卖建议。</p>';
+  openModal((item?'编辑':'新增')+' · '+m.title,
+    '<div class="grid2">'+m.fields.map(function(f){ return fieldHTML(f,data[f.k]); }).join('')+'</div>'+sub+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+    '<button class="btn" data-act="save-module" data-page="'+page+'" data-id="'+esc(id||'')+'">保存</button></div>');
+}
+
+function saveModule(page,id){
+  var m=MODULES[page];
+  var list=Storage.get(m.key,[]);
+  var patch={};
+  var bad='';
+  m.fields.forEach(function(f){
+    var el=document.getElementById('f_'+f.k);
+    var val=el?el.value.trim():'';
+    if(f.req && !val) bad=f.label;
+    if(f.type==='number') patch[f.k]=val===''?'':Number(val);
+    else patch[f.k]=val;
+  });
+  if(bad){ toast('「'+bad+'」不能为空'); return; }
+  if(id){
+    list.forEach(function(x){ if(x.id===id){ for(var k in patch) x[k]=patch[k]; x.updatedAt=Date.now(); } });
+  } else {
+    patch.id=uid(); patch.createdAt=Date.now();
+    list.push(patch);
+  }
+  Storage.set(m.key,list);
+  closeModal(); render(); toast(id?'已保存修改':'已新增');
+}
+
+/* ---------- 全局点击分发 ---------- */
+document.addEventListener('click',function(e){
+  var nav=e.target.closest('[data-nav]');
+  if(nav){ goPage(nav.getAttribute('data-nav')); return; }
+  var el=e.target.closest('[data-act]');
+  if(!el) return;
+  var act=el.getAttribute('data-act');
+  if(act==='close-modal'){ closeModal(); return; }
+  if(act==='expand'){
+    var txt=TEXT_CACHE[el.getAttribute('data-id')]||'';
+    openModal('全文','<div class="modal-body">'+nl2br(txt)+'</div>',{cls:'wide'});
+    return;
+  }
+  handleAction(act,el);
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeModal();
+});
+
+/* ---------- 动作分发 ---------- */
+function handleAction(act,el){
+  var page=el.getAttribute('data-page');
+  var id=el.getAttribute('data-id');
+  switch(act){
+    case 'add': openModuleForm(page); break;
+    case 'edit': openModuleForm(page,id); break;
+    case 'del': confirmModuleDel(page,id); break;
+    case 'save-module': saveModule(page,id); break;
+    case 'ai-fetch': doAIFetch(); break;
+
+    case 'kb-filter': kbFilter=el.getAttribute('data-cat')||'全部'; render(); break;
+    case 'kb-paste': openPasteNote(); break;
+    case 'kb-gencard': genNoteCard(); break;
+    case 'kb-copy': copyOneNote(id); break;
+    case 'kb-edit': openNoteForm(id); break;
+    case 'kb-del': confirmNoteDel(id); break;
+    case 'kb-copy-note': openCopyNoteCat(); break;
+    case 'copy-note-all': doCopyNoteCat(); break;
+    case 'copy-text': doCopyText(el); break;
+
+    case 'hold-add': openHoldingForm(); break;
+    case 'hold-edit': openHoldingForm(id); break;
+    case 'hold-save': saveHolding(id); break;
+    case 'hold-del': confirmHoldDel(id); break;
+    case 'dca': openDca(id); break;
+    case 'dca-save': saveDca(id); break;
+    case 'refresh-quote': refreshQuotes(); break;
+
+    case 'checkin-save': saveCheckin(); break;
+    case 'checkin-summary': render(); toast('本月汇总已更新（纯本地计算）'); break;
+
+    case 'todo-add': openTodoForm(); break;
+    case 'todo-edit': openTodoForm(id); break;
+    case 'todo-save': saveTodo(id); break;
+    case 'todo-toggle': toggleTodo(id); break;
+    case 'todo-del': confirmTodoDel(id); break;
+
+    case 'goto': goPage(page,id); closeModal(); break;
+
+    case 'sync-open': openSyncModal(); break;
+    case 'sync-save': saveSync(); break;
+    case 'sync-push': manualPush(); break;
+    case 'sync-pull': manualPull(); break;
+    case 'sync-off': disableSync(); break;
+
+    case 'reset-memory-yes': resetMemory(); break;
+  }
+}
+
+function confirmModuleDel(page,id){
+  var m=MODULES[page];
+  openModal('删除确认','<div class="modal-body">确定删除这条记录吗？删除后无法恢复。</div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+    '<button class="btn" data-act="del-ok" data-page="'+page+'" data-id="'+esc(id)+'">确认删除</button></div>',{cls:'narrow'});
+  document.querySelector('[data-act="del-ok"]').onclick=function(){
+    var list=Storage.get(m.key,[]).filter(function(x){ return x.id!==id; });
+    Storage.set(m.key,list);
+    closeModal(); render(); toast('已删除');
+  };
+}
+
+function doAIFetch(){
+  if(!MCP_ON){ toast('MCP 已关闭，先在顶栏打开开关'); return; }
+  toast('正在读取 data.json…');
+  loadRemoteData().then(function(ok){
+    if(ok) toast('已拉取最新 data.json');
+  });
+}
+
+/* ============================================================
+   知识库笔记
+   ============================================================ */
+var kbFilter='全部';
+var KB_CATS=['理财','养生','AI','运营'];
+
+function noteCard(n){
+  var content=String(n.content||'');
+  var body;
+  if(content.length>180){
+    TEXT_CACHE[n.id]=content;
+    body=nl2br(content.slice(0,180))+'… <button class="link-btn" data-act="expand" data-id="'+esc(n.id)+'">查看全文 ›</button>';
+  }else{
+    body=nl2br(content);
+  }
+  return '<article class="card" data-card-id="'+esc(n.id)+'">'+
+    '<div class="card-top">'+
+      '<div class="card-title"><span>'+esc(n.title||'未命名笔记')+'</span>'+
+        (n.category?'<span class="tag cat">'+esc(n.category)+'</span>':'')+
+      '</div>'+
+      '<div class="card-actions">'+
+        '<button class="icon-btn" data-act="kb-copy" data-id="'+esc(n.id)+'">⧉ 复制</button>'+
+        '<button class="icon-btn" data-act="kb-edit" data-id="'+esc(n.id)+'">✎ 编辑</button>'+
+        '<button class="icon-btn danger" data-act="kb-del" data-id="'+esc(n.id)+'">删除</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card-body">'+(body||'<span style="color:#66666e">（无内容）</span>')+'</div>'+
+    '<div class="meta-line">记录于 '+fmtTime(n.createdAt)+'</div>'+
+  '</article>';
+}
+
+RENDERERS['knowledge-base']=function(){
+  var all=Storage.get('wb_knowledge',[]);
+  var cats=['全部'].concat(KB_CATS);
+  var chips=cats.map(function(c){
+    return '<button class="chip '+(kbFilter===c?'on':'')+'" data-act="kb-filter" data-cat="'+esc(c)+'">'+esc(c)+'</button>';
+  }).join('');
+  var actions='<button class="btn ghost" data-act="kb-copy-note">⧉ 复制笔记</button>'+
+              '<button class="btn" data-act="kb-paste">＋ 粘贴</button>';
+  var head=pageHead('知识库笔记', PAGE_SUB['knowledge-base'], actions);
+  var list=(kbFilter==='全部')?all:all.filter(function(n){ return n.category===kbFilter; });
+  list=list.slice().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+  var body=list.length
+    ? '<div class="cards">'+list.map(noteCard).join('')+'</div>'
+    : emptyState('这个分类下还没有笔记','点「＋ 粘贴」把对话里分析好的内容整段粘进来，首行会自动成为标题。','<button class="btn" data-act="kb-paste">＋ 粘贴</button>');
+  return head+'<div class="filters">'+chips+'</div>'+body;
+};
+
+function openPasteNote(){
+  openModal('粘贴录入 · 知识库笔记',
+    '<div class="field"><label for="kbPaste">粘贴内容（首行作为卡片标题）</label>'+
+      '<textarea id="kbPaste" style="min-height:240px" placeholder="把 AI 分析好的内容整段粘进来…&#10;第一行会作为卡片标题"></textarea></div>'+
+    '<div class="field"><label for="kbCat">分类</label><select id="kbCat">'+
+      KB_CATS.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('')+
+    '</select></div>'+
+    '<p class="hint">生成后可在卡片「✎ 编辑」里改分类；页顶筛选栏用来过滤整页。</p>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="kb-gencard">生成卡片</button></div>');
+  setTimeout(function(){ var t=document.getElementById('kbPaste'); if(t) t.focus(); },50);
+}
+
+function genNoteCard(){
+  var ta=document.getElementById('kbPaste');
+  var text=ta?ta.value.trim():'';
+  var catEl=document.getElementById('kbCat');
+  var category=catEl?catEl.value:'';
+  if(!text){ toast('先粘贴内容'); return; }
+  var lines=text.split(/\r?\n/);
+  var first=lines[0].trim();
+  var title=first.length>60?first.slice(0,60)+'…':first;
+  var content=(lines.length>1)?lines.slice(1).join('\n').trim():text;
+  if(!content) content=first;
+  var list=Storage.get('wb_knowledge',[]);
+  list.push({ id:uid(), title:title||'未命名笔记', content:content, category:category, createdAt:Date.now() });
+  Storage.set('wb_knowledge',list);
+  closeModal(); kbFilter='全部'; render(); toast('已生成卡片');
+}
+
+function openNoteForm(id){
+  var list=Storage.get('wb_knowledge',[]);
+  var n=null;
+  list.forEach(function(x){ if(x.id===id) n=x; });
+  if(!n) return;
+  openModal('编辑笔记',
+    '<div class="field"><label for="nTitle">标题</label><input id="nTitle" type="text" value="'+esc(n.title)+'"></div>'+
+    '<div class="field"><label for="nCat">分类</label><select id="nCat">'+
+      '<option value=""'+(!n.category?' selected':'')+'>未分类</option>'+
+      KB_CATS.map(function(c){ return '<option value="'+c+'"'+(n.category===c?' selected':'')+'>'+c+'</option>'; }).join('')+
+    '</select></div>'+
+    '<div class="field"><label for="nContent">内容</label><textarea id="nContent" style="min-height:240px">'+esc(n.content)+'</textarea></div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="save-note" data-id="'+esc(id)+'">保存</button></div>');
+  var saveBtn=document.querySelector('[data-act="save-note"]');
+  if(saveBtn) saveBtn.onclick=function(){
+    var t=document.getElementById('nTitle').value.trim();
+    var c=document.getElementById('nCat').value;
+    var co=document.getElementById('nContent').value;
+    var arr=Storage.get('wb_knowledge',[]);
+    arr.forEach(function(x){ if(x.id===id){ x.title=t||'未命名笔记'; x.category=c; x.content=co; x.updatedAt=Date.now(); } });
+    Storage.set('wb_knowledge',arr);
+    closeModal(); render(); toast('已保存');
+  };
+}
+
+function confirmNoteDel(id){
+  openModal('删除确认','<div class="modal-body">确定删除这张笔记卡片吗？</div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="note-del-ok" data-id="'+esc(id)+'">确认删除</button></div>',{cls:'narrow'});
+  var b=document.querySelector('[data-act="note-del-ok"]');
+  if(b) b.onclick=function(){
+    Storage.set('wb_knowledge',Storage.get('wb_knowledge',[]).filter(function(x){ return x.id!==id; }));
+    closeModal(); render(); toast('已删除');
+  };
+}
+
+function copyText(text,okMsg){
+  function done(){ toast(okMsg||'已复制到剪贴板'); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){ fallbackCopy(text,done); });
+  }else{
+    fallbackCopy(text,done);
+  }
+}
+function fallbackCopy(text,done){
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed'; ta.style.left='-9999px'; ta.style.top='0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ toast('复制失败，请手动选择文本'); }
+  document.body.removeChild(ta);
+}
+function copyOneNote(id){
+  var n=null;
+  Storage.get('wb_knowledge',[]).forEach(function(x){ if(x.id===id) n=x; });
+  if(!n) return;
+  var text='【'+(n.category||'未分类')+'】'+(n.title||'')+'\n'+(n.content||'');
+  copyText(text,'已复制「'+n.title+'」');
+}
+function openCopyNoteCat(){
+  var all=Storage.get('wb_knowledge',[]);
+  openModal('复制笔记 · 按分类导出',
+    '<div class="field"><label for="cnCat">选择分类</label><select id="cnCat">'+
+      '<option value="全部">全部</option>'+
+      KB_CATS.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('')+
+    '</select></div>'+
+    '<div id="cnPreview" class="hint" style="margin-top:4px;max-height:38vh;overflow:auto;white-space:pre-wrap;color:#b9b9c2;font-size:12.6px;line-height:1.8"></div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="copy-note-all">复制全部</button></div>',{cls:'wide'});
+  var sel=document.getElementById('cnCat');
+  var prev=document.getElementById('cnPreview');
+  function refresh(){
+    var cat=sel.value;
+    var list=(cat==='全部')?all:all.filter(function(n){ return n.category===cat; });
+    if(!list.length){ prev.textContent='这个分类下还没有内容。'; return; }
+    prev.textContent=list.map(function(n,i){
+      return (i+1)+'. '+n.title+'\n'+(n.content||'');
+    }).join('\n\n');
+  }
+  sel.onchange=refresh;
+  refresh();
+}
+function doCopyNoteCat(){
+  var sel=document.getElementById('cnCat');
+  var cat=sel?sel.value:'全部';
+  var all=Storage.get('wb_knowledge',[]);
+  var list=(cat==='全部')?all:all.filter(function(n){ return n.category===cat; });
+  if(!list.length){ toast('这个分类下没有内容'); return; }
+  var text='【知识库 · '+cat+'】'+list.length+' 条\n\n'+list.map(function(n,i){
+    return (i+1)+'. 【'+(n.category||'未分类')+'】'+n.title+'\n'+(n.content||'');
+  }).join('\n\n');
+  copyText(text,'已复制 '+list.length+' 条笔记');
+}
+function doCopyText(el){
+  var text=el.getAttribute('data-text')||'';
+  copyText(decodeURIComponent(text));
+}
+
+/* ============================================================
+   AI 抓取内容
+   ============================================================ */
+function aiTip(){
+  var stamp=dataStamp();
+  var parts=[];
+  if(!MCP_ON) parts.push('MCP 已关闭：仅本地读写，打开顶栏开关后才可联网抓取。');
+  else parts.push('点右上「AI刷新抓取」重新读取 data.json。');
+  if(stamp) parts.push('数据日期：'+stamp);
+  return '<p class="hint-text" style="margin:-6px 0 14px">'+esc(parts.join('　'))+'</p>';
+}
+function aiEmpty(text){
+  return emptyState('还没取到内容',text||'未取到真实数据时这里保持为空，不填占位数字。部署到 GitHub Pages 后点「AI刷新抓取」。',
+    '<button class="btn ghost" data-act="ai-fetch"'+(MCP_ON?'':' disabled')+'>AI刷新抓取</button>');
+}
+function urlLine(url){
+  if(!url) return '<span style="color:#ff8b8b;font-size:12px">原文链接缺失</span>';
+  return '<a class="link-btn" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">原文链接 ↗</a>';
+}
+
+RENDERERS['operation-ideas']=function(){
+  var list=Array.isArray(DATA.operationIdeas)?DATA.operationIdeas:[];
+  var head=pageHead('运营思路&选题素材库', PAGE_SUB['operation-ideas'], aiFetchBtn());
+  if(!list.length) return head+aiTip()+aiEmpty('运营思路由对话抓取后写入 data.json；没抓到就保持空。');
+  return head+aiTip()+'<div class="cards">'+list.map(function(n,i){
+    var id='op-'+i;
+    return '<article class="card" data-card-id="'+id+'">'+
+      '<div class="card-top"><div class="card-title"><span>'+esc(n.title||'未命名')+'</span><span class="tag cat">AI</span></div></div>'+
+      '<div class="card-body">'+valHTML(n.content||'',id)+'</div>'+
+      '<div class="meta-line"><span>'+esc(n.date||'日期 --')+'</span>'+urlLine(n.url)+'</div>'+
+    '</article>';
+  }).join('')+'</div>';
+};
+
+RENDERERS['idea-lib']=function(){
+  var list=Array.isArray(DATA.ideaLib)?DATA.ideaLib:[];
+  var head=pageHead('选题灵感库', PAGE_SUB['idea-lib'], aiFetchBtn());
+  if(!list.length) return head+aiTip()+aiEmpty('选题灵感由对话抓取后写入 data.json。');
+  return head+aiTip()+'<div class="cards">'+list.map(function(n,i){
+    var id='idea-'+i;
+    var st=IDEA_STATUS[n.status]||{l:n.status||'--',c:'muted'};
+    return '<article class="card" data-card-id="'+id+'">'+
+      '<div class="card-top"><div class="card-title"><span>'+esc(n.title||'未命名')+'</span><span class="tag '+st.c+'">'+esc(st.l)+'</span></div></div>'+
+      '<div class="card-body">'+valHTML(n.content||'',id)+'</div>'+
+    '</article>';
+  }).join('')+'</div>';
+};
+
+RENDERERS['finance-news']=function(){
+  var list=Array.isArray(DATA.financeNews)?DATA.financeNews:[];
+  var stamp=latestFinanceDate();
+  var head=pageHead('理财每日新知', PAGE_SUB['finance-news'], aiFetchBtn(),
+    '<span class="tag cat" style="font-size:11px;font-weight:600">最后更新 '+(stamp?esc(stamp):'--')+'</span>');
+  if(!list.length) return head+aiTip()+aiEmpty('理财新知由对话抓取后写入 data.json，每条都带原文 URL；没抓到就保持空，不编造资讯。');
+  return head+aiTip()+'<div class="cards">'+list.map(function(n,i){
+    var id='fin-'+i;
+    return '<article class="card" data-card-id="'+id+'">'+
+      '<div class="card-top"><div class="card-title"><span>'+esc(n.title||'未命名')+'</span></div></div>'+
+      '<div class="meta-line" style="margin-top:0;margin-bottom:8px"><span>'+esc(n.date||'--')+'</span><span>'+esc(n.source||'来源 --')+'</span></div>'+
+      (n.summary?'<div class="card-body" style="color:#cfcfd6">'+nl2br(n.summary)+'</div>':'')+
+      (n.content?'<div class="card-body" style="margin-top:8px">'+valHTML(n.content,id)+'</div>':'')+
+      '<div class="card-foot"><span class="foot-time">仅记录，不构成投资建议</span><div class="foot-btns">'+urlLine(n.url)+'</div></div>'+
+    '</article>';
+  }).join('')+'</div>';
+};
+
+RENDERERS['index-track']=function(){
+  var list=Array.isArray(DATA.indexTrack)?DATA.indexTrack:[];
+  var head=pageHead('指数跟踪表', PAGE_SUB['index-track'], aiFetchBtn());
+  var stamp=dataStamp();
+  if(!list.length) return head+aiTip()+aiEmpty('指数数值由对话抓取后写入 data.json.indexTrack；未取到一律显示 --，不填假值。');
+  var levelMap={high:{l:'重点关注',c:'hold'},mid:{l:'持续跟踪',c:'pending'},low:{l:'观察',c:'muted'}};
+  return head+aiTip()+'<div class="cards">'+list.map(function(idx,i){
+    var id='idx-'+i;
+    var lv=levelMap[idx.level]||{l:idx.level||'',c:'muted'};
+    var rows=(idx.rows||[]).map(function(r){
+      return '<div class="k">'+esc(r.label)+'</div><div class="v">'+esc(r.val||'--')+'</div>';
+    }).join('');
+    var note=idx.note?'<div class="card-body" style="margin-top:10px;color:#cfcfd6">'+nl2br(idx.note)+'</div>':'';
+    return '<article class="card" data-card-id="'+id+'">'+
+      '<div class="card-top"><div class="card-title">'+
+        '<span style="width:9px;height:9px;border-radius:50%;background:'+esc(idx.color||'#ffd74a')+';display:inline-block;flex:none"></span>'+
+        '<span>'+esc(idx.name||'未命名指数')+'</span>'+
+        (lv.l?'<span class="tag '+lv.c+'">'+esc(lv.l)+'</span>':'')+
+      '</div></div>'+
+      '<div class="kv">'+rows+'</div>'+
+      note+
+      '<div class="meta-line">数据来源：'+esc(idx.source||(DATA_STATE.loaded?'data.json':'未取到'))+'</div>'+
+    '</article>';
+  }).join('')+'</div>';
+};
+
+/* ============================================================
+   持仓台账
+   ============================================================ */
+function holdingCard(h){
+  var code=String(h.code||'');
+  var q=fundQuote[code]||null;
+  var g=(q && q.gszzl!==null && q.gszzl!==undefined && q.gszzl!=='' && !isNaN(Number(q.gszzl)))?Number(q.gszzl):null;
+  var amount=(h.amount===''||h.amount==null)?0:Number(h.amount);
+  if(isNaN(amount)) amount=0;
+  var cost=(h.cost===''||h.cost==null)?null:Number(h.cost);
+  var pnl=(cost!==null&&cost>0)?(amount-cost):null;
+  var pnlPct=(cost!==null&&cost>0)?((amount-cost)/cost*100):null;
+  var today=(g!==null&&amount>0)?(amount*g/100):null;
+  var qHTML=(g===null)?'<span class="flat">待刷新</span>'
+      :'<span class="'+(g>0?'up':(g<0?'down':'flat'))+'">'+pct(g)+'</span>'+
+       (q&&q.dwjz!==undefined?' <span style="color:#8a8a93;font-size:12px">净值 '+esc(q.dwjz)+'</span>':'');
+  var todayHTML=(today===null)?'<span class="flat">--</span>'
+      :'<span class="'+(today>0?'up':(today<0?'down':'flat'))+'">≈ '+(today>0?'+':'')+'¥'+num(Math.round(today*100)/100)+'</span>';
+  var pnlHTML=(pnl===null)?'<span class="flat">--</span>'
+      :'<span class="'+(pnl>0?'up':(pnl<0?'down':'flat'))+'">'+(pnl>0?'+':'')+'¥'+num(pnl)+'（'+pct(pnlPct)+'）</span>';
+  var typeLabel=TYPE_LABEL[h.type]||TYPE_LABEL.other;
+  var dcaLine='';
+  if(h.dca && h.dca.enabled){
+    dcaLine='<div class="meta-line">定投 每日 ¥'+num(h.dca.daily)+' · 累计 ¥'+num(h.dca.acc||0)+' · 自 '+esc(h.dca.lastDate||'--')+'</div>';
+  }
+  var upd=(q&&q.gztime)?q.gztime:(h.updatedAt?fmtTime(h.updatedAt):'待刷新');
+  return '<article class="card" data-card-id="'+esc(h.id)+'">'+
+    '<div class="card-top"><div class="card-title"><span>'+esc(h.name||'未命名')+'</span>'+
+      '<span class="tag '+(TYPE_TAG[h.type]||'muted')+'">'+esc(typeLabel)+'</span></div>'+
+      '<div class="card-actions"><button class="icon-btn" data-act="hold-edit" data-id="'+esc(h.id)+'">✎ 编辑</button></div></div>'+
+    '<div class="kv">'+
+      '<div class="k">代码</div><div class="v">'+esc(code||'--')+'</div>'+
+      '<div class="k">市值</div><div class="v">¥'+num(amount)+'</div>'+
+      '<div class="k">成本</div><div class="v">'+(cost===null?'--':'¥'+num(cost))+'</div>'+
+      '<div class="k">持仓盈亏</div><div class="v">'+pnlHTML+'</div>'+
+      '<div class="k">今日涨跌</div><div class="v">'+qHTML+'</div>'+
+      '<div class="k">今日收益</div><div class="v">'+todayHTML+'</div>'+
+    '</div>'+dcaLine+
+    '<div class="card-foot"><span class="foot-time">更新 '+esc(upd)+'</span>'+
+      '<div class="foot-btns">'+
+        '<button class="icon-btn" data-act="dca" data-id="'+esc(h.id)+'">定投</button>'+
+        '<button class="icon-btn" data-act="hold-edit" data-id="'+esc(h.id)+'">编辑</button>'+
+        '<button class="icon-btn danger" data-act="hold-del" data-id="'+esc(h.id)+'">删除</button>'+
+      '</div></div>'+
+  '</article>';
+}
+
+RENDERERS['asset-account']=function(){
+  applyDCA();
+  var list=Storage.get('wb_asset',[]);
+  var actions='<button class="btn ghost" data-act="refresh-quote">↻ 刷新涨跌</button>'+
+              '<button class="btn" data-act="hold-add">＋ 新增持仓</button>';
+  var head=pageHead('持仓台账', PAGE_SUB['asset-account'], actions);
+  if(!list.length){
+    return head+emptyState('台账还没有持仓','点「＋ 新增持仓」填写名称、6 位基金代码、市值与成本；涨跌来自公开行情接口，取不到就显示「待刷新」。',
+      '<button class="btn" data-act="hold-add">＋ 新增持仓</button>');
+  }
+  return head+'<div class="cards">'+list.map(holdingCard).join('')+'</div>'+
+    '<p class="hint-text">涨跌与收益为公开行情的估算值；QDII / 美股基金净值通常滞后 1 天（T+1），属正常现象。这里只做台账整理，不构成任何买卖建议。</p>';
+};
+
+function openHoldingForm(id){
+  var list=Storage.get('wb_asset',[]);
+  var h=null;
+  if(id) list.forEach(function(x){ if(x.id===id) h=x; });
+  var d=h||{};
+  var typeOpts=[{v:'gold',l:'黄金'},{v:'nasdaq',l:'纳斯达克100'},{v:'dividend',l:'红利低波'},{v:'qdii',l:'标普500跟踪摩根'},{v:'other',l:'其它基金'}];
+  openModal((h?'编辑':'新增')+'持仓',
+    '<div class="field"><label for="hName">名称</label><input id="hName" type="text" value="'+esc(d.name||'')+'" placeholder="例：某某黄金ETF联接"></div>'+
+    '<div class="field"><label for="hCode">基金代码（6 位）</label><input id="hCode" type="text" value="'+esc(d.code||'')+'" placeholder="000000" maxlength="6"></div>'+
+    '<div class="field"><label for="hType">类型</label><select id="hType">'+
+      typeOpts.map(function(o){ return '<option value="'+o.v+'"'+(String(d.type||'')===o.v?' selected':'')+'>'+o.l+'</option>'; }).join('')+
+    '</select></div>'+
+    '<div class="field"><label for="hAmount">市值（元）</label><input id="hAmount" type="number" step="any" value="'+esc(d.amount===undefined?'':d.amount)+'"></div>'+
+    '<div class="field"><label for="hCost">成本（元）</label><input id="hCost" type="number" step="any" value="'+esc(d.cost===undefined?'':d.cost)+'"></div>'+
+    '<p class="hint">成本填 0 或留空时不计算盈亏。基金代码用于抓取公开行情。</p>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="hold-save" data-id="'+esc(id||'')+'">保存</button></div>');
+}
+
+function saveHolding(id){
+  var name=document.getElementById('hName').value.trim();
+  var code=document.getElementById('hCode').value.trim();
+  var type=document.getElementById('hType').value;
+  var amount=document.getElementById('hAmount').value.trim();
+  var cost=document.getElementById('hCost').value.trim();
+  if(!name){ toast('名称不能为空'); return; }
+  if(code && !/^\d{6}$/.test(code)){ toast('基金代码应为 6 位数字'); return; }
+  var list=Storage.get('wb_asset',[]);
+  if(id){
+    list.forEach(function(h){
+      if(h.id===id){
+        h.name=name; h.code=code; h.type=type;
+        h.amount=amount===''?0:Number(amount);
+        h.cost=cost===''?0:Number(cost);
+        h.updatedAt=Date.now();
+      }
+    });
+  }else{
+    list.push({ id:uid(), name:name, code:code, type:type,
+      amount:amount===''?0:Number(amount), cost:cost===''?0:Number(cost),
+      dca:{enabled:false,daily:0,lastDate:'',acc:0}, createdAt:Date.now(), updatedAt:Date.now() });
+  }
+  Storage.set('wb_asset',list);
+  closeModal(); render(); toast(id?'已保存修改':'已新增持仓');
+}
+
+function confirmHoldDel(id){
+  openModal('删除确认','<div class="modal-body">确定删除这条持仓记录吗？</div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="hold-del-ok" data-id="'+esc(id)+'">确认删除</button></div>',{cls:'narrow'});
+  var b=document.querySelector('[data-act="hold-del-ok"]');
+  if(b) b.onclick=function(){
+    Storage.set('wb_asset',Storage.get('wb_asset',[]).filter(function(x){ return x.id!==id; }));
+    closeModal(); render(); toast('已删除');
+  };
+}
+
+function openDca(id){
+  var list=Storage.get('wb_asset',[]);
+  var h=null; list.forEach(function(x){ if(x.id===id) h=x; });
+  if(!h) return;
+  var d=h.dca||{enabled:false,daily:0,lastDate:'',acc:0};
+  openModal('定投设置 · '+(h.name||''),
+    '<div class="field"><label for="dcaDaily">每日定投金额（元）</label><input id="dcaDaily" type="number" step="any" value="'+esc(d.daily||0)+'"></div>'+
+    '<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer">'+
+      '<input type="checkbox" id="dcaOn" '+(d.enabled?'checked':'')+' style="width:19px;height:19px"> 启用每日定投</label></div>'+
+    '<p class="hint">启用后从当天起每日按金额累计进市值与累计定投额，不回溯历史。累计：¥'+num(d.acc||0)+'，起始：'+esc(d.lastDate||'（保存当天）')+'。</p>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="dca-save" data-id="'+esc(id)+'">保存</button></div>');
+}
+
+function saveDca(id){
+  var dailyEl=document.getElementById('dcaDaily');
+  var onEl=document.getElementById('dcaOn');
+  var daily=dailyEl?Number(dailyEl.value):0;
+  var on=onEl?onEl.checked:false;
+  if(on && (!daily||daily<=0)){ toast('启用定投需要填写大于 0 的金额'); return; }
+  var list=Storage.get('wb_asset',[]);
+  var t=todayStr();
+  list.forEach(function(h){
+    if(h.id!==id) return;
+    if(!h.dca) h.dca={enabled:false,daily:0,lastDate:'',acc:0};
+    var wasOn=!!h.dca.enabled;
+    h.dca.enabled=on;
+    h.dca.daily=on?daily:(daily||0);
+    if(on){
+      if(!wasOn || !h.dca.lastDate) h.dca.lastDate=t;
+    }
+    h.updatedAt=Date.now();
+  });
+  Storage.set('wb_asset',list);
+  closeModal(); render(); toast(on?'定投已启用':'定投已暂停');
+}
+
+function applyDCA(){
+  var list=Storage.get('wb_asset',[]);
+  var t=todayStr();
+  var changed=false;
+  list.forEach(function(h){
+    var d=h.dca;
+    if(!d||!d.enabled) return;
+    var daily=Number(d.daily)||0;
+    if(daily<=0) return;
+    if(!d.lastDate){ d.lastDate=t; changed=true; return; }
+    var last=new Date(d.lastDate+'T00:00:00');
+    if(isNaN(last.getTime())){ d.lastDate=t; changed=true; return; }
+    var days=Math.floor((new Date(t+'T00:00:00')-last)/86400000);
+    if(days>0){
+      if(days>3650) days=3650;
+      h.amount=(Number(h.amount)||0)+daily*days;
+      d.acc=(Number(d.acc)||0)+daily*days;
+      d.lastDate=t;
+      changed=true;
+    }
+  });
+  if(changed) Storage.set('wb_asset',list);
+}
+
+/* JSONP：东方财富基金估值（顺序加载，避免全局变量串号） */
+function loadFundQuote(code){
+  return new Promise(function(resolve){
+    window.Data_netWorthTrend=undefined;
+    window.Data_ACWorthTrend=undefined;
+    window.fS_name=undefined;
+    var s=document.createElement('script');
+    s.src='https://fund.eastmoney.com/pingzhongdata/'+encodeURIComponent(code)+'.js?v='+Date.now();
+    s.async=false;
+    s.onload=function(){
+      var arr=window.Data_netWorthTrend;
+      var name=window.fS_name||'';
+      var out=null;
+      if(arr && arr.length){
+        var last=arr[arr.length-1];
+        var d=new Date(last.x);
+        var g=Number(last.equityReturn);
+        out={
+          fundcode:code,
+          name:name,
+          gszzl:isNaN(g)?null:g,
+          dwjz:last.y,
+          gztime:isNaN(d.getTime())?'':fmtTime(d.getTime())
+        };
+      }
+      if(s.parentNode) s.parentNode.removeChild(s);
+      resolve(out);
+    };
+    s.onerror=function(){
+      if(s.parentNode) s.parentNode.removeChild(s);
+      resolve(null);
+    };
+    document.head.appendChild(s);
+  });
+}
+
+function refreshQuotes(){
+  if(!MCP_ON){ toast('MCP 已关闭：先在顶栏打开开关再联网抓取'); return; }
+  var list=Storage.get('wb_asset',[]);
+  var codes=[];
+  list.forEach(function(h){ var c=String(h.code||''); if(/^\d{6}$/.test(c) && codes.indexOf(c)===-1) codes.push(c); });
+  if(!codes.length){ toast('台账里没有可抓取的 6 位基金代码'); return; }
+  toast('正在顺序抓取 '+codes.length+' 只基金的估值…');
+  var i=0, ok=0;
+  function next(){
+    if(i>=codes.length){
+      try{ localStorage.setItem('fundQuoteCache',JSON.stringify(fundQuote)); }catch(e){}
+      render();
+      toast(ok?('已更新 '+ok+' 只基金估值'):'没有取到估值，可能被接口或网络限制');
+      return;
+    }
+    var code=codes[i++];
+    loadFundQuote(code).then(function(q){
+      if(q){ fundQuote[code]=q; ok++; }
+      setTimeout(next,120);
+    });
+  }
+  next();
+}
+
+/* ============================================================
+   健康打卡
+   ============================================================ */
+var CHECKIN_ITEMS=[
+  {k:'sleep',name:'睡眠',unit:'小时',type:'number',ph:'例：7'},
+  {k:'exercise',name:'运动',unit:'分钟',type:'number',ph:'例：30'},
+  {k:'water',name:'饮水',unit:'毫升',type:'number',ph:'例：1500'},
+  {k:'food',name:'食疗',unit:'记录',type:'text',ph:'例：山药粥、少油'},
+  {k:'feel',name:'体感',unit:'记录',type:'text',ph:'例：精神一般，腰略酸'}
+];
+
+function getTodayCheckin(){
+  var raw=Storage.get('wb_checkin',{});
+  if(!raw || typeof raw!=='object' || Array.isArray(raw)) raw={};
+  if(raw.date!==todayStr()) return {date:todayStr(),items:{}};
+  if(!raw.items||typeof raw.items!=='object') raw.items={};
+  return raw;
+}
+
+RENDERERS['health-checkin']=function(){
+  var rec=getTodayCheckin();
+  var items=rec.items||{};
+  var rows=CHECKIN_ITEMS.map(function(it){
+    var v=items[it.k]||{};
+    var val=v.value===undefined?'':v.value;
+    return '<tr>'+
+      '<td class="item">'+esc(it.name)+'<div style="color:#7d7d86;font-size:11px;font-weight:400;margin-top:1px">'+esc(it.unit)+'</div></td>'+
+      '<td><input id="ci-'+it.k+'" type="'+(it.type==='number'?'number':'text')+'" step="any" value="'+esc(val)+'" placeholder="'+esc(it.ph)+'"></td>'+
+      '<td class="check-cell"><label class="cell-tap"><input type="checkbox" id="ck-'+it.k+'" '+(v.checked?'checked':'')+' aria-label="'+esc(it.name)+'打卡"></label></td>'+
+    '</tr>';
+  }).join('');
+  var actions='<button class="btn" data-act="checkin-save">保存今日打卡</button>';
+  var head=pageHead('今日打卡面板', PAGE_SUB['health-checkin'], actions);
+  return head+
+    '<p class="hint-text" style="margin:-6px 0 12px">'+esc(todayCN())+'　勾选完成的项目并填写记录，保存后进入当月汇总。</p>'+
+    '<div class="table-wrap"><table class="checkin">'+
+      '<colgroup><col style="width:26%"><col style="width:50%"><col style="width:24%"></colgroup>'+
+      '<thead><tr><th>打卡项</th><th>记录</th><th style="text-align:center">是否打卡</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table></div>'+
+    '<p class="hint-text">这里只记录计划与执行情况，不提供医疗建议；身体不适请及时就医。</p>';
+};
+
+function saveCheckin(){
+  var items={}, any=false;
+  CHECKIN_ITEMS.forEach(function(it){
+    var ck=document.getElementById('ck-'+it.k);
+    var val=document.getElementById('ci-'+it.k);
+    items[it.k]={ checked:!!(ck&&ck.checked), value:val?val.value.trim():'' };
+    if(items[it.k].checked) any=true;
+  });
+  if(!any){ toast('至少勾选一项再保存'); return; }
+  var date=todayStr();
+  Storage.set('wb_checkin',{date:date,items:items});
+  var recs=Storage.get('checkinRecords',{});
+  if(!recs || typeof recs!=='object' || Array.isArray(recs)) recs={};
+  var ym=ymStr();
+  if(!recs[ym] || typeof recs[ym]!=='object') recs[ym]={};
+  recs[ym][date]=items;
+  Storage.set('checkinRecords',recs);
+  render();
+  toast('已保存 '+date+' 打卡');
+}
+
+RENDERERS['checkin-history']=function(){
+  var ym=ymStr();
+  var recs=Storage.get('checkinRecords',{});
+  if(!recs || typeof recs!=='object' || Array.isArray(recs)) recs={};
+  var month=(recs[ym] && typeof recs[ym]==='object')?recs[ym]:{};
+  var dates=Object.keys(month).sort().reverse();
+  var dims=[{k:'sleep',name:'睡眠'},{k:'exercise',name:'运动'},{k:'food',name:'食疗'},{k:'feel',name:'体感'}];
+  var actions='<button class="btn ghost" data-act="checkin-summary">AI汇总本月</button>';
+  var head=pageHead('查看历史打卡汇总', PAGE_SUB['checkin-history'], actions);
+  var summaryHint='';
+  if(!dates.length){
+    return head+emptyState('本月还没有打卡记录','先去「今日打卡面板」保存一次，这里会自动汇总。','<button class="btn ghost" data-act="goto" data-page="health-checkin">去打卡</button>');
+  }
+  var dimCards=dims.map(function(d){
+    var days=[];
+    dates.forEach(function(dt){
+      var it=month[dt]&&month[dt][d.k];
+      if(it && it.checked) days.push({date:dt,value:it.value||''});
+    });
+    var recent=days.slice(0,3).map(function(x){ return x.date.slice(5)+'　'+(x.value||'--'); }).join('\n');
+    return '<div class="sum-card"><h4>'+d.name+'</h4>'+
+      '<div class="sum-num">打卡 <b>'+days.length+'</b> 天</div>'+
+      '<div class="sum-detail">'+(recent?'最近 3 天：\n'+recent:'本月暂无记录')+'</div></div>';
+  }).join('');
+  return head+summaryHint+
+    '<div class="sum-grid">'+
+      '<div class="sum-card span2"><h4>本月已打卡</h4><div class="sum-num"><b>'+dates.length+'</b> 天</div>'+
+        '<div class="sum-detail">统计范围：'+esc(ym)+'　最近一次：'+esc(dates[0]||'--')+'　（纯本地计算，不联网）</div></div>'+
+      dimCards+
+    '</div>';
+};
+
+/* ============================================================
+   今日待办
+   ============================================================ */
+var PRIORITY={ high:{l:'高',c:'hold',rank:3}, mid:{l:'中',c:'pending',rank:2}, low:{l:'低',c:'muted',rank:1} };
+
+function sortTodoList(list){
+  return list.slice().sort(function(a,b){
+    var ra=(PRIORITY[a.priority]||{rank:0}).rank;
+    var rb=(PRIORITY[b.priority]||{rank:0}).rank;
+    if(ra!==rb) return rb-ra;
+    var ta=a.time?new Date(a.time).getTime():0;
+    var tb=b.time?new Date(b.time).getTime():0;
+    if(isNaN(ta)) ta=0;
+    if(isNaN(tb)) tb=0;
+    if(tb!==ta) return tb-ta;
+    return (b.createdAt||0)-(a.createdAt||0);
+  });
+}
+
+RENDERERS['todo-list']=function(){
+  var list=sortTodoList(Storage.get('wb_todo',[]));
+  var doneCount=list.filter(function(x){ return x.done; }).length;
+  var actions='<button class="btn" data-act="todo-add">＋ 新增待办</button>';
+  var head=pageHead('今日待办清单', PAGE_SUB['todo-list'], actions,
+    '<span class="tag cat" style="font-size:11px">'+(list.length-doneCount)+' 项待完成</span>');
+  if(!list.length){
+    return head+emptyState('今天还没有待办','写下「内容 + 优先级 + 时间」，列表会自动按 高→中→低、同优先级时间靠后在上 排序。','<button class="btn" data-act="todo-add">＋ 新增待办</button>');
+  }
+  return head+'<div class="cards">'+list.map(function(t){
+    var p=PRIORITY[t.priority]||PRIORITY.low;
+    var timeTxt=t.time?String(t.time).replace('T',' '):'未设时间';
+    return '<article class="card" data-card-id="'+esc(t.id)+'">'+
+      '<div class="card-top">'+
+        '<div class="card-title" style="gap:10px">'+
+          '<label class="cell-tap" style="justify-content:flex-start;min-height:28px;min-width:28px">'+
+            '<input type="checkbox" data-act="todo-toggle" data-id="'+esc(t.id)+'" '+(t.done?'checked':'')+' aria-label="标记完成">'+
+          '</label>'+
+          '<span style="'+(t.done?'text-decoration:line-through;color:#7d7d86':'')+'">'+esc(t.content||'未命名待办')+'</span>'+
+          '<span class="tag '+p.c+'">'+p.l+'</span>'+
+        '</div>'+
+        '<div class="card-actions"><button class="icon-btn" data-act="todo-edit" data-id="'+esc(t.id)+'">✎ 编辑</button>'+
+          '<button class="icon-btn danger" data-act="todo-del" data-id="'+esc(t.id)+'">删除</button></div>'+
+      '</div>'+
+      '<div class="meta-line" style="margin-top:2px">时间：'+esc(timeTxt)+(t.done?'　· 已完成':'')+'</div>'+
+    '</article>';
+  }).join('')+'</div>';
+};
+
+function openTodoForm(id){
+  var list=Storage.get('wb_todo',[]);
+  var t=null; if(id) list.forEach(function(x){ if(x.id===id) t=x; });
+  var d=t||{priority:'mid'};
+  openModal((t?'编辑':'新增')+'待办',
+    '<div class="field"><label for="tContent">内容</label><input id="tContent" type="text" value="'+esc(d.content||'')+'" placeholder="例：拍 3 条黄金手串素材"></div>'+
+    '<div class="field"><label for="tPriority">优先级</label><select id="tPriority">'+
+      '<option value="high"'+(d.priority==='high'?' selected':'')+'>高</option>'+
+      '<option value="mid"'+(d.priority==='mid'?' selected':'')+'>中</option>'+
+      '<option value="low"'+(d.priority==='low'?' selected':'')+'>低</option>'+
+    '</select></div>'+
+    '<div class="field"><label for="tTime">时间</label><input id="tTime" type="datetime-local" value="'+esc(d.time||'')+'"></div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="todo-save" data-id="'+esc(id||'')+'">保存</button></div>',{cls:'narrow'});
+}
+
+function saveTodo(id){
+  var content=document.getElementById('tContent').value.trim();
+  var priority=document.getElementById('tPriority').value;
+  var time=document.getElementById('tTime').value;
+  if(!content){ toast('待办内容不能为空'); return; }
+  var list=Storage.get('wb_todo',[]);
+  if(id){
+    list.forEach(function(t){ if(t.id===id){ t.content=content; t.priority=priority; t.time=time; t.updatedAt=Date.now(); } });
+  }else{
+    list.push({ id:uid(), content:content, priority:priority, time:time, done:false, createdAt:Date.now() });
+  }
+  Storage.set('wb_todo',list);
+  closeModal(); render(); toast(id?'已保存修改':'已新增待办');
+}
+
+function toggleTodo(id){
+  var list=Storage.get('wb_todo',[]);
+  list.forEach(function(t){ if(t.id===id) t.done=!t.done; });
+  Storage.set('wb_todo',list);
+  render();
+}
+
+function confirmTodoDel(id){
+  openModal('删除确认','<div class="modal-body">确定删除这条待办吗？</div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="todo-del-ok" data-id="'+esc(id)+'">确认删除</button></div>',{cls:'narrow'});
+  var b=document.querySelector('[data-act="todo-del-ok"]');
+  if(b) b.onclick=function(){
+    Storage.set('wb_todo',Storage.get('wb_todo',[]).filter(function(x){ return x.id!==id; }));
+    closeModal(); render(); toast('已删除');
+  };
+}
+
+/* ============================================================
+   全局搜索
+   ============================================================ */
+var QUICK={
+  '工作台首页':'knowledge-base','首页':'knowledge-base',
+  '知识库':'knowledge-base','笔记':'knowledge-base','知识库笔记':'knowledge-base',
+  '短视频脚本':'script-lib','脚本':'script-lib',
+  '理财台账':'asset-account','台账':'asset-account','持仓':'asset-account','理财':'asset-account',
+  '指数跟踪表':'index-track','指数':'index-track',
+  '调仓记录':'rebalance','调仓':'rebalance',
+  '今日养生打卡':'health-checkin','打卡':'health-checkin','养生打卡':'health-checkin','运动规划':'health-checkin',
+  '打卡历史汇总':'checkin-history','打卡历史':'checkin-history',
+  '今日待办':'todo-list','待办':'todo-list',
+  '运营':'operation-ideas','选题':'idea-lib','选品':'product-lib','选品库':'product-lib',
+  '对标账号':'account-observe','作品复盘':'work-review','提示词':'prompt-lib','发布记录':'record-review',
+  '灵感脑洞':'side-idea','项目评估':'project-eval','身体观察':'body-note','身体备忘录':'body-note',
+  '理财每日新知':'finance-news','理财新知':'finance-news'
+};
+
+function collectDocs(){
+  var docs=[];
+  Object.keys(MODULES).forEach(function(page){
+    var m=MODULES[page];
+    Storage.get(m.key,[]).forEach(function(it){
+      var title=String(it[m.first]||'');
+      var text=m.fields.map(function(f){
+        var v=it[f.k];
+        if(v===null||v===undefined) return '';
+        if(f.type==='select'&&f.options){
+          var lab=v;
+          f.options.forEach(function(o){ if(typeof o==='object'&&String(o.v)===String(v)) lab=o.l; });
+          if(page==='product-lib'&&f.k==='status') lab=(STATUS_LABEL[v]||v);
+          return String(lab);
+        }
+        return String(v);
+      }).join('  ');
+      docs.push({ page:page, module:m.title, id:it.id, title:title||'未命名', text:text });
+    });
+  });
+  Storage.get('wb_knowledge',[]).forEach(function(n){
+    docs.push({ page:'knowledge-base', module:'知识库笔记', id:n.id, title:n.title||'未命名',
+      text:(n.category||'')+' '+(n.content||'') });
+  });
+  Storage.get('wb_asset',[]).forEach(function(h){
+    docs.push({ page:'asset-account', module:'持仓台账', id:h.id, title:h.name||'未命名',
+      text:[h.code,TYPE_LABEL[h.type]||'',h.amount,h.cost].join(' ') });
+  });
+  Storage.get('wb_todo',[]).forEach(function(t){
+    docs.push({ page:'todo-list', module:'今日待办', id:t.id, title:t.content||'未命名',
+      text:(PRIORITY[t.priority]?PRIORITY[t.priority].l:'')+' '+(t.time||'')+(t.done?' 已完成':'') });
+  });
+  var recs=Storage.get('checkinRecords',{});
+  if(recs && typeof recs==='object' && !Array.isArray(recs)){
+    Object.keys(recs).forEach(function(ym){
+      var month=recs[ym];
+      if(!month || typeof month!=='object') return;
+      Object.keys(month).forEach(function(dt){
+        var items=month[dt]||{};
+        var txt='';
+        CHECKIN_ITEMS.forEach(function(it){
+          var v=items[it.k];
+          if(v && v.checked) txt+=it.name+' '+(v.value||'')+' ';
+        });
+        if(txt) docs.push({ page:'checkin-history', module:'历史打卡汇总', id:'', title:dt, text:txt });
+      });
+    });
+  }
+  (DATA.operationIdeas||[]).forEach(function(n,i){
+    docs.push({ page:'operation-ideas', module:'运营思路&选题素材库', id:'op-'+i, title:n.title||'', text:(n.content||'')+' '+(n.url||'')+' '+(n.date||'') });
+  });
+  (DATA.ideaLib||[]).forEach(function(n,i){
+    docs.push({ page:'idea-lib', module:'选题灵感库', id:'idea-'+i, title:n.title||'', text:(n.content||'')+' '+(n.status||'') });
+  });
+  (DATA.financeNews||[]).forEach(function(n,i){
+    docs.push({ page:'finance-news', module:'理财每日新知', id:'fin-'+i, title:n.title||'', text:[n.summary,n.content,n.source,n.date].join(' ') });
+  });
+  (DATA.indexTrack||[]).forEach(function(n,i){
+    var rows=(n.rows||[]).map(function(r){ return (r.label||'')+' '+(r.val||''); }).join(' ');
+    docs.push({ page:'index-track', module:'指数跟踪表', id:'idx-'+i, title:n.name||'', text:rows+' '+(n.note||'') });
+  });
+  return docs;
+}
+
+function makeSnippet(text,tokens){
+  var low=String(text||'').toLowerCase();
+  var pos=-1;
+  tokens.forEach(function(t){
+    var p=low.indexOf(t);
+    if(p>=0 && (pos<0||p<pos)) pos=p;
+  });
+  if(pos<0) pos=0;
+  var start=Math.max(0,pos-26);
+  var frag=String(text||'').slice(start,start+86).replace(/\s+/g,' ');
+  return (start>0?'…':'')+frag+((start+86)<String(text||'').length?'…':'');
+}
+
+function runSearch(q){
+  q=String(q||'').trim();
+  if(!q) return;
+  if(q==='MCP开关-开'){ setMCP(true); toast('MCP 已开启'); return; }
+  if(q==='MCP开关-关'){ setMCP(false); toast('MCP 已关闭'); return; }
+  if(q==='重置记忆'){ openResetConfirm(); return; }
+  if(QUICK[q]){ goPage(QUICK[q]); return; }
+  var exact=Object.keys(PAGE_META).filter(function(p){ return PAGE_META[p].title===q; })[0];
+  if(exact){ goPage(exact); return; }
+  var tokens=q.split(/\s+/).filter(Boolean).map(function(t){ return t.toLowerCase(); });
+  var scored=[];
+  collectDocs().forEach(function(d){
+    var title=String(d.title||'').toLowerCase();
+    var body=String(d.text||'').toLowerCase();
+    var ok=tokens.every(function(t){ return title.indexOf(t)!==-1 || body.indexOf(t)!==-1; });
+    if(!ok) return;
+    var score=tokens.reduce(function(acc,t){
+      return acc + (title.indexOf(t)!==-1?3:0) + (body.indexOf(t)!==-1?1:0);
+    },0);
+    scored.push({ page:d.page, module:d.module, id:d.id, title:d.title, text:d.text, score:score,
+      snippet:makeSnippet(d.text||d.title,tokens) });
+  });
+  scored.sort(function(a,b){ return b.score-a.score; });
+  scored=scored.slice(0,40);
+  if(!scored.length){
+    openModal('搜索「'+q+'」','<div class="modal-body">未找到与『'+esc(q)+'』相关的内容。</div>'+
+      '<p class="hint">换个更短的关键词试试；多个词用空格分开时需要全部命中。</p>',{cls:'narrow'});
+    return;
+  }
+  var body='<p class="hint" style="margin:-2px 0 10px;color:#8a8a93;font-size:12.3px">共 '+scored.length+' 条，点击结果才跳转并定位卡片。</p>'+
+    '<div class="res-list">'+scored.map(function(d){
+      return '<button class="res-item" data-act="goto" data-page="'+d.page+'" data-id="'+esc(d.id)+'">'+
+        '<div class="res-top"><span class="res-mod">'+esc(d.module)+'</span><span class="res-title">'+esc(d.title||'未命名')+'</span></div>'+
+        '<div class="res-snip">'+esc(d.snippet)+'</div>'+
+      '</button>';
+    }).join('')+'</div>';
+  openModal('搜索「'+q+'」',body,{cls:'wide'});
+}
+
+/* ============================================================
+   ☁ 云端同步（直连 GitHub API）
+   ============================================================ */
+var SYNC={
+  token:function(){ return localStorage.getItem('syncGithubToken')||''; },
+  user:function(){ return localStorage.getItem('syncGithubUser')||''; },
+  repo:function(){ var u=this.user(); return u?u+'.github.io':''; },
+  enabled:function(){ return !!(this.token()&&this.user()); },
+  headers:function(){
+    return {
+      'Authorization':'Bearer '+this.token(),
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':'2022-11-28'
+    };
+  },
+  path:function(){
+    return 'https://api.github.com/repos/'+encodeURIComponent(this.user())+'/'+encodeURIComponent(this.repo())+'/contents/userData.json';
+  }
+};
+
+function b64enc(str){
+  var bytes=new TextEncoder().encode(str);
+  var bin='';
+  var chunk=0x8000;
+  for(var i=0;i<bytes.length;i+=chunk){
+    bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  }
+  return btoa(bin);
+}
+function b64dec(b64){
+  var bin=atob(String(b64||'').replace(/\s+/g,''));
+  var bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+var syncTimer=null;
+function scheduleSync(){
+  if(!SYNC.enabled()) return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(function(){ cloudPush(true); },700);
+}
+
+function updateSyncBtn(){
+  var btn=document.getElementById('syncBtn');
+  if(!btn) return;
+  btn.classList.toggle('on',SYNC.enabled());
+  btn.title=SYNC.enabled()?('已开启同步 · '+SYNC.user()+'/'+SYNC.repo()):'把个人数据备份到自己的 GitHub 仓库';
+}
+
+function cloudPush(silent){
+  if(!SYNC.enabled()){ if(!silent) openSyncModal(); return Promise.resolve(false); }
+  var payload={};
+  SYNC_KEYS.forEach(function(k){ payload[k]=Storage.get(k,defaultFor(k)); });
+  var body={
+    message:'sync userData.json '+new Date().toISOString(),
+    content:b64enc(JSON.stringify(payload,null,2))
+  };
+  function getSha(){
+    return fetch(SYNC.path(),{headers:SYNC.headers(),cache:'no-store'}).then(function(r){
+      if(r.status===404) return null;
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json().then(function(j){ return j.sha||null; });
+    });
+  }
+  function put(){
+    return fetch(SYNC.path(),{
+      method:'PUT',
+      headers:Object.assign({'Content-Type':'application/json'},SYNC.headers()),
+      body:JSON.stringify(body)
+    });
+  }
+  return getSha().then(function(sha){
+    if(sha) body.sha=sha;
+    return put();
+  }).then(function(r){
+    if(r.status===409){
+      return getSha().then(function(sha2){
+        if(sha2) body.sha=sha2;
+        return put();
+      }).then(function(r2){
+        if(!r2.ok) throw new Error('HTTP '+r2.status);
+      });
+    }
+    if(!r.ok) throw new Error('HTTP '+r.status);
+  }).then(function(){
+    localStorage.setItem('syncLastAt',String(Date.now()));
+    if(!silent) toast('已推送到云端');
+    return true;
+  }).catch(function(err){
+    if(!silent) toast('推送失败：'+(err&&err.message?err.message:'网络错误'));
+    return false;
+  });
+}
+
+function cloudPull(silent){
+  if(!SYNC.enabled()){ if(!silent) openSyncModal(); return Promise.resolve(false); }
+  return fetch(SYNC.path(),{headers:SYNC.headers(),cache:'no-store'}).then(function(r){
+    if(r.status===404){ if(!silent) toast('云端还没有 userData.json，先点「立即推送」'); return false; }
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json().then(function(j){
+      var data={};
+      try{ data=JSON.parse(b64dec(j.content||'')); }catch(e){ throw new Error('云端数据解析失败'); }
+      SYNC_KEYS.forEach(function(k){
+        var v=data[k];
+        if(v===null||v===undefined) v=defaultFor(k);
+        if(typeof v!=='object') v=defaultFor(k);
+        try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
+      });
+      localStorage.setItem('syncLastAt',String(Date.now()));
+      render(); updateSyncBtn();
+      if(!silent) toast('已从云端拉取个人数据');
+      return true;
+    });
+  }).catch(function(err){
+    if(!silent) toast('拉取失败：'+(err&&err.message?err.message:'网络错误'));
+    return false;
+  });
+}
+
+function openSyncModal(){
+  var last=localStorage.getItem('syncLastAt');
+  openModal('☁ 云端同步（可选）',
+    '<div class="field"><label for="syncUser">GitHub 用户名</label><input id="syncUser" type="text" value="'+esc(SYNC.user())+'" placeholder="例：your-name"></div>'+
+    '<div class="field"><label for="syncToken">fine-grained Token（只勾该仓库 Contents 读写）</label>'+
+      '<input id="syncToken" type="password" value="'+esc(SYNC.token())+'" placeholder="github_pat_…" autocomplete="off"></div>'+
+    '<p class="hint">仓库必须是 <b>&lt;用户名&gt;.github.io</b>，数据写入其中的 <b>userData.json</b>。Token 只保存在这台设备的浏览器 localStorage 里，不上传、不写入仓库；关闭同步即清除 token。'+
+      '<br>同步范围：笔记 / 打卡 / 台账 / 待办等 17 个个人数据 key；AI 资讯仍走 data.json，互不覆盖。</p>'+
+    '<p class="hint">当前状态：'+(SYNC.enabled()?('已开启（'+esc(SYNC.user()+'/'+SYNC.repo())+'）'):'未开启')+
+      '　最后同步：'+esc(last?fmtTime(Number(last)):'--')+'</p>'+
+    '<div class="modal-foot">'+
+      '<button class="btn ghost" data-act="sync-off">关闭同步</button>'+
+      '<button class="btn ghost" data-act="sync-pull">从云端拉取</button>'+
+      '<button class="btn ghost" data-act="sync-push">立即推送</button>'+
+      '<button class="btn" data-act="sync-save">保存设置</button>'+
+    '</div>',{cls:'wide'});
+}
+
+function saveSync(){
+  var u=document.getElementById('syncUser').value.trim();
+  var t=document.getElementById('syncToken').value.trim();
+  if(!u||!t){ toast('用户名和 Token 都要填'); return; }
+  localStorage.setItem('syncGithubUser',u);
+  localStorage.setItem('syncGithubToken',t);
+  updateSyncBtn();
+  toast('同步已开启，之后修改数据会自动推送');
+}
+function manualPush(){
+  if(!SYNC.enabled()){ toast('先填写用户名和 Token 并保存'); return; }
+  toast('正在推送…');
+  cloudPush(false);
+}
+function manualPull(){
+  if(!SYNC.enabled()){ toast('先填写用户名和 Token 并保存'); return; }
+  toast('正在拉取…');
+  cloudPull(false);
+}
+function disableSync(){
+  localStorage.removeItem('syncGithubToken');
+  localStorage.removeItem('syncGithubUser');
+  updateSyncBtn();
+  closeModal();
+  toast('已关闭云端同步，数据只存在本机');
+}
+
+/* ============================================================
+   远程数据 / 顶栏 / 初始化
+   ============================================================ */
+function showBanner(msg,warn){
+  bannerEl.hidden=false;
+  bannerEl.textContent=msg;
+  bannerEl.classList.toggle('warn',!!warn);
+}
+function hideBanner(){ bannerEl.hidden=true; bannerEl.textContent=''; }
+
+function seedHoldings(){
+  var cur=Storage.get('wb_asset',[]);
+  if(cur.length) return;
+  if(!Array.isArray(DATA.holdings)||!DATA.holdings.length) return;
+  var seeded=DATA.holdings.filter(function(h){
+    return h && h.name && String(h.name).indexOf('示例')===-1;
+  }).map(function(h){
+    var o=Object.assign({},h);
+    o.id=uid(); o.createdAt=Date.now();
+    if(!o.dca || typeof o.dca!=='object') o.dca={enabled:false,daily:0,lastDate:'',acc:0};
+    return o;
+  });
+  if(seeded.length) Storage.set('wb_asset',seeded);
+}
+
+function loadRemoteData(){
+  return fetch('./data.json?t='+Date.now(),{cache:'no-store'})
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(json){
+      var base={holdings:[],financeNews:[],operationIdeas:[],ideaLib:[],indexTrack:[],fundQuotes:{}};
+      DATA=Object.assign(base,json||{});
+      ['holdings','financeNews','operationIdeas','ideaLib','indexTrack'].forEach(function(k){
+        if(!Array.isArray(DATA[k])) DATA[k]=[];
+      });
+      if(!DATA.fundQuotes || typeof DATA.fundQuotes!=='object' || Array.isArray(DATA.fundQuotes)) DATA.fundQuotes={};
+      Object.keys(DATA.fundQuotes).forEach(function(code){ fundQuote[code]=DATA.fundQuotes[code]; });
+      try{ localStorage.setItem('fundQuoteCache',JSON.stringify(fundQuote)); }catch(e){}
+      DATA_STATE.loaded=true; DATA_STATE.error=''; DATA_STATE.at=Date.now();
+      if(!PAGE_META[currentPage]) currentPage='knowledge-base';
+      seedHoldings();
+      hideBanner();
+      render();
+      return true;
+    })
+    .catch(function(err){
+      DATA_STATE.loaded=false;
+      DATA_STATE.error=(err&&err.message)?err.message:'读取失败';
+      showBanner('未取到 data.json（'+DATA_STATE.error+'）。当前为本地演示：AI 资讯类模块保持「--」，个人录入数据照常可用。部署到 GitHub Pages 后才会拉到远程数据。',true);
+      render();
+      return false;
+    });
+}
+
+function setMCP(on){
+  MCP_ON=!!on;
+  try{ localStorage.setItem('wb_mcp', MCP_ON?'1':'0'); }catch(e){}
+  var sw=document.getElementById('mcpSwitch');
+  if(sw){ sw.classList.toggle('on',MCP_ON); sw.setAttribute('aria-checked',MCP_ON?'true':'false'); }
+  render();
+}
+
+function openResetConfirm(){
+  openModal('重置本地记忆','<div class="modal-body">这会清空本机保存的全部个人数据（笔记 / 台账 / 打卡 / 待办 / 各模块录入），且无法恢复。云端已同步的数据不会被删除。</div>'+
+    '<div class="modal-foot"><button class="btn ghost" data-act="close-modal">取消</button>'+
+      '<button class="btn" data-act="reset-memory-yes">确认清空</button></div>',{cls:'narrow'});
+}
+function resetMemory(){
+  SYNC_KEYS.forEach(function(k){
+    try{ localStorage.removeItem(k); }catch(e){}
+  });
+  try{ localStorage.removeItem('fundQuoteCache'); }catch(e){}
+  fundQuote={};
+  closeModal();
+  kbFilter='全部';
+  render();
+  toast('本机个人数据已清空');
+}
+
+function init(){
+  renderNav();
+
+  var mcpSaved=localStorage.getItem('wb_mcp');
+  MCP_ON = (mcpSaved===null) ? true : (mcpSaved==='1');
+  var sw=document.getElementById('mcpSwitch');
+  sw.classList.toggle('on',MCP_ON);
+  sw.setAttribute('aria-checked',MCP_ON?'true':'false');
+  sw.addEventListener('click',function(){ setMCP(!MCP_ON); toast(MCP_ON?'MCP 已开启：允许手动触发联网抓取':'MCP 已关闭：仅本地读写'); });
+
+  document.getElementById('syncBtn').addEventListener('click',openSyncModal);
+  updateSyncBtn();
+
+  var sidebar=document.getElementById('sidebar');
+  var scrim=document.getElementById('scrim');
+  document.getElementById('hamburger').addEventListener('click',function(){
+    var open=sidebar.classList.toggle('open');
+    scrim.classList.toggle('show',open);
+    this.setAttribute('aria-expanded',open?'true':'false');
+  });
+  scrim.addEventListener('click',function(){
+    sidebar.classList.remove('open');
+    scrim.classList.remove('show');
+    document.getElementById('hamburger').setAttribute('aria-expanded','false');
+  });
+
+  var input=document.getElementById('globalSearch');
+  document.getElementById('searchBtn').addEventListener('click',function(){ runSearch(input.value); });
+  input.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ e.preventDefault(); runSearch(input.value); }
+  });
+
+  try{
+    var cache=JSON.parse(localStorage.getItem('fundQuoteCache')||'{}');
+    Object.keys(cache).forEach(function(k){ fundQuote[k]=cache[k]; });
+  }catch(e){}
+
+  applyDCA();
+  render();
+  loadRemoteData();
+}
+
+init();
+</script>
+</body>
+</html>

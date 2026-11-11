@@ -1,0 +1,9 @@
+{
+  "_note": "AI 策展内容容器（由对话发「刷新」写入）。所有数据必须真实可追溯；未取到就保持空数组，页面显示 -- 。字段结构：financeNews[{title,date,source,url,summary,content}]；operationIdeas[{title,content,url,date}]；ideaLib[{title,content,status:pending|hold|done}]；indexTrack[{name,icon,color,rows:[{label,val}],level:high|mid|low,note,source}]；holdings[{name,code,amount,type:gold|nasdaq|dividend|qdii|other,cost,dca:{enabled,daily,lastDate,acc}}]；fundQuotes{\"6位基金代码\":{fundcode,name,gszzl,dwjz,gztime}}。",
+  "holdings": [],
+  "financeNews": [],
+  "operationIdeas": [],
+  "ideaLib": [],
+  "indexTrack": [],
+  "fundQuotes": {}
+}

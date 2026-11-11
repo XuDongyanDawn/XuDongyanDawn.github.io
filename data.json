@@ -1,44 +1,9 @@
 {
   "_note": "AI 策展内容容器（由对话发「刷新」写入）。所有数据必须真实可追溯；未取到就保持空数组，页面显示 -- 。字段结构：financeNews[{title,date,source,url,summary,content}]；operationIdeas[{title,content,url,date}]；ideaLib[{title,content,status:pending|hold|done}]；indexTrack[{name,icon,color,rows:[{label,val}],level:high|mid|low,note,source}]；holdings[{name,code,amount,type:gold|nasdaq|dividend|qdii|other,cost,dca:{enabled,daily,lastDate,acc}}]；fundQuotes{\"6位基金代码\":{fundcode,name,gszzl,dwjz,gztime}}。",
   "holdings": [],
-  "financeNews": [
-    {
-      "title": "测试条目｜链路自检",
-      "date": "2026-11-11",
-      "source": "自检脚本",
-      "url": "https://github.com/XuDongyanDawn/XuDongyanDawn.github.io",
-      "summary": "用于验证 data.json 写入与页面读取链路，测完可删除。",
-      "content": "这条是链路自检生成的数据，确认看到它即代表 写入→部署→读取 全链路正常。"
-    }
-  ],
-  "operationIdeas": [
-    {
-      "title": "测试条目｜运营思路",
-      "content": "自检用，测完可删。",
-      "url": "https://github.com/XuDongyanDawn",
-      "date": "2026-11-11"
-    }
-  ],
+  "financeNews": [],
+  "operationIdeas": [],
   "ideaLib": [],
-  "indexTrack": [
-    {
-      "name": "自检指数",
-      "icon": "📈",
-      "color": "#f5c451",
-      "level": "mid",
-      "note": "自检用",
-      "source": "自检脚本",
-      "rows": [
-        {
-          "label": "模拟点位",
-          "val": "1234.56"
-        },
-        {
-          "label": "模拟涨跌",
-          "val": "+1.23%"
-        }
-      ]
-    }
-  ],
+  "indexTrack": [],
   "fundQuotes": {}
 }
